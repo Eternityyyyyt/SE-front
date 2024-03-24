@@ -2,13 +2,13 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 
 const LoginPage = () => {
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState('');   // hook
   const [password, setPassword] = useState('');
   const router = useRouter();
 
   const handleLogin = async () => {
     try {   // 使用Fetch API向指定URL发送POST请求
-      const response = await fetch('/login', {  // 转发到next.config.mjs中转发
+      const response = await fetch('/api/login', {  // 转发到next.config.mjs中转发
         method: 'POST',
         headers: {
           'Content-Type':'application/json' // 设置请求头信息，指定了请求体的数据类型为JSON格式
@@ -18,6 +18,7 @@ const LoginPage = () => {
       if(response.ok) {
         router.push('/chat');
       } else {
+        router.push('/404');
         console.error('Login Failed');
       } 
     }

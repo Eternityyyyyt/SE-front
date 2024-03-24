@@ -3,18 +3,18 @@ import styles from '../styles/chatStyles.module.css';
 const ChatDirectory:React.FC<{}> = () => {
     return (
         <div className={styles['chat-directory']}>
-            <h2>Chat Directory</h2>
+            <h2>好友列表</h2>
             <div className={styles['chat-room']}>
-            Chat Room 1
+            张皓晨
             </div>
             <div className={styles['chat-room']}>
-            Chat Room 2
+            周子恒
             </div>
             <div className={styles['chat-room']}>
-            Chat Room 3
+            俞鹤扬
             </div>
             <div className={styles['chat-room']}>
-            Chat Room 4
+            郑凯天
             </div>
         </div>
     );

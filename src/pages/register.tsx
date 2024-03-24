@@ -8,7 +8,7 @@ const RegisterPage = () => {
 
     const handleRegister = async () => {
         try {   // 使用Fetch API向指定URL发送POST请求
-            const response = await fetch('/register', {  // 转发到next.config.mjs中转发
+            const response = await fetch('/api/register', {  // 转发到next.config.mjs中转发
               method: 'POST',
               headers: {
                 'Content-Type':'application/json' // 设置请求头信息，指定了请求体的数据类型为JSON格式
@@ -19,6 +19,7 @@ const RegisterPage = () => {
               router.push('/login');
             } else {
               console.error('Registration Failed');
+              router.push('/404');
             } 
           }
           catch(error) {

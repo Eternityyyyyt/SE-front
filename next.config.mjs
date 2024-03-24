@@ -6,7 +6,7 @@ const nextConfig = {
 
     async rewrites() {
         return [{
-            source: "/:path*",
+            source: "/api/:path*",
             // Change to your backend URL in production
             destination: "http://127.0.0.1/:path*",
         }];
