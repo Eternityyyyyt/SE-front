@@ -13,7 +13,7 @@ const LoginPage = () => {
         headers: {
           'Content-Type': 'application/json' // 设置请求头信息，指定了请求体的数据类型为JSON格式
         },
-        body: JSON.stringify({ userName, password })
+        body: JSON.stringify({userName, password})
       });
       if (response.ok) {
         router.push('/chat');

@@ -20,7 +20,7 @@ const RegisterPage = () => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ userName, password, phoneNumber, email })
+                body: JSON.stringify({userName, password, phoneNumber, email})
             });
 
             if (response.ok) {
