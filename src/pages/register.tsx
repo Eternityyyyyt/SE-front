@@ -4,28 +4,35 @@ import { useRouter } from "next/router";
 const RegisterPage = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [email, setEmail] = useState('');
     const router = useRouter();
 
     const handleRegister = async () => {
-        try {   // 使用Fetch API向指定URL发送POST请求
-            const response = await fetch('/api/register', {  // 转发到next.config.mjs中转发
-              method: 'POST',
-              headers: {
-                'Content-Type':'application/json' // 设置请求头信息，指定了请求体的数据类型为JSON格式
-              },
-              body: JSON.stringify({username, password})
-            });
-            if(response.ok) {
-              router.push('/login');
-            } else {
-              console.error('Registration Failed');
-              router.push('/404');
-            } 
-          }
-          catch(error) {
-              console.error('Error during Registration:', error);
-          }
+        if (!username || !password || !email || !phoneNumber) {
+            alert("请填写所有必填信息。");
+            return;
+        }
 
+        try {
+            const response = await fetch('/api/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({username, password, phoneNumber, email})
+            });
+
+            if(response.ok) {
+                router.push('/login');
+            } else {
+                console.error('Registration Failed');
+                router.push('/404');
+            }
+        }
+        catch(error) {
+            console.error('Error during Registration:', error);
+        }
     };
 
     return (
@@ -39,7 +46,17 @@ const RegisterPage = () => {
                 <label htmlFor="password">密码：</label>
                 <input type="password" id="password" value={password} onChange={e => setPassword(e.target.value)}></input>
             </div>
-            <button onClick={handleRegister}>Login</button>
+            <div>
+                <label htmlFor="phoneNumber">手机号：</label>
+                <input type="tel" id="phoneNumber" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)}></input>
+            </div>
+            <div>
+                <label htmlFor="email">邮箱：</label>
+                <input type="email" id="email" value={email} onChange={e => setEmail(e.target.value)}></input>
+            </div>
+            <div>
+                <button onClick={handleRegister}>注册</button>
+            </div>
         </div>
     );
 };

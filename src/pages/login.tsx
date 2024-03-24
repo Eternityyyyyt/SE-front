@@ -37,7 +37,7 @@ const LoginPage = () => {
       <label htmlFor="password">密码：</label>
       <input type="password" id="password" value={password} onChange={e => setPassword(e.target.value)}></input>
       </div>
-      <button onClick={handleLogin}>Login</button>
+      <button onClick={handleLogin}>登录</button>
     </div>
   );
 
