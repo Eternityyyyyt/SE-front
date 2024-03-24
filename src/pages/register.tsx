@@ -2,14 +2,14 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 
 const RegisterPage = () => {
-    const [username, setUsername] = useState('');
+    const [userName, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [email, setEmail] = useState('');
     const router = useRouter();
 
     const handleRegister = async () => {
-        if (!username || !password || !email || !phoneNumber) {
+        if (!userName || !password || !email || !phoneNumber) {
             alert("请填写所有必填信息。");
             return;
         }
@@ -20,17 +20,17 @@ const RegisterPage = () => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({username, password, phoneNumber, email})
+                body: JSON.stringify({ userName, password, phoneNumber, email })
             });
 
-            if(response.ok) {
+            if (response.ok) {
                 router.push('/login');
             } else {
                 console.error('Registration Failed');
                 router.push('/404');
             }
         }
-        catch(error) {
+        catch (error) {
             console.error('Error during Registration:', error);
         }
     };
@@ -39,8 +39,8 @@ const RegisterPage = () => {
         <div>
             <h1>Register</h1>
             <div>
-                <label htmlFor="username">用户名：</label>
-                <input type="text" id="username" value={username} onChange={e => setUsername(e.target.value)}></input>
+                <label htmlFor="userName">用户名：</label>
+                <input type="text" id="userName" value={userName} onChange={e => setUsername(e.target.value)}></input>
             </div>
             <div>
                 <label htmlFor="password">密码：</label>

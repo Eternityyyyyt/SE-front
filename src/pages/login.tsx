@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 
 const LoginPage = () => {
-  const [username, setUsername] = useState('');   // hook
+  const [userName, setUsername] = useState('');   // hook
   const [password, setPassword] = useState('');
   const router = useRouter();
 
@@ -11,31 +11,31 @@ const LoginPage = () => {
       const response = await fetch('/api/login', {  // 转发到next.config.mjs中转发
         method: 'POST',
         headers: {
-          'Content-Type':'application/json' // 设置请求头信息，指定了请求体的数据类型为JSON格式
+          'Content-Type': 'application/json' // 设置请求头信息，指定了请求体的数据类型为JSON格式
         },
-        body: JSON.stringify({username, password})
+        body: JSON.stringify({ userName, password })
       });
-      if(response.ok) {
+      if (response.ok) {
         router.push('/chat');
       } else {
         router.push('/404');
         console.error('Login Failed');
-      } 
+      }
     }
-    catch(error) {
-        console.error('Error during login:', error);
+    catch (error) {
+      console.error('Error during login:', error);
     }
   };
   return (
     <div>
       <h1>Login</h1>
       <div>
-        <label htmlFor="username">用户名：</label>
-        <input type="text" id="username" value={username} onChange={e => setUsername(e.target.value)}></input>
+        <label htmlFor="userName">用户名：</label>
+        <input type="text" id="userName" value={userName} onChange={e => setUsername(e.target.value)}></input>
       </div>
       <div>
-      <label htmlFor="password">密码：</label>
-      <input type="password" id="password" value={password} onChange={e => setPassword(e.target.value)}></input>
+        <label htmlFor="password">密码：</label>
+        <input type="password" id="password" value={password} onChange={e => setPassword(e.target.value)}></input>
       </div>
       <button onClick={handleLogin}>登录</button>
     </div>
