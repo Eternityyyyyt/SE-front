@@ -15,7 +15,7 @@ const ChatWindow: React.FC<{}> = () => {
             </div>
             <div className={styles['chat-bubble']}>
             <span className={styles['sender-name']}>YOU</span>
-            <p className={styles['message-content']}>I'm fine, thank you!</p>
+            <p className={styles['message-content']}>Im fine, thank you!</p>
             </div>
             <div className={styles['chat-bubble']}>
             <span className={styles['sender-name']}>ME</span>
