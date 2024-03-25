@@ -28,7 +28,7 @@ const ChatPage = () => {
         const data = await response.json();
         localStorage.setItem('phoneNumber', data.phoneNumber);
         localStorage.setItem('email', data.email);
-        router.push('/myCenter')
+        router.push('/MyCenter')
       } else {
         const data = await response.json();
         switch(data.info) {
