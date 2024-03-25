@@ -19,7 +19,7 @@ const ChatPage = () => {
     };
     // TODO
     try {
-      const response = await fetch(`/api/user/${userName}`, { 
+      const response = await fetch(`/api/user/${userName}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}` // 发送本地token到后端
