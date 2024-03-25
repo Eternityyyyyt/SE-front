@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 
 
-const myCenter = () => {
+const MyCenter = () => {
     const userName = localStorage.getItem('userName');
     const phoneNumber = localStorage.getItem('phoneNumber');
     const email = localStorage.getItem('email');
@@ -54,4 +54,4 @@ const myCenter = () => {
         </div>
     );
 };
-export default myCenter;
+export default MyCenter;
