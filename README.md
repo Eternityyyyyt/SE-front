@@ -7,6 +7,7 @@
     /login.tsx -登录页面
     /register.tsx -注册页面
     /chat.tsx   -聊天页面
+    /myCenter.tsx  -个人页面
     /404.tsx
 /components
     /ChatDirectory.tsx

@@ -22,10 +22,13 @@ const ChatPage = () => {
       const response = await fetch(`/api/user/${userName}`, { 
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}` // 发送本地token到后端
+          'Authorization': `${token}` // 发送本地token到后端
         },
       });
-      if(response.ok) {
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('phoneNumber', data.phoneNumber);
+        localStorage.setItem('email', data.email);
         router.push('/myCenter')
       } else {
 

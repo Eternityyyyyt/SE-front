@@ -24,16 +24,7 @@ const RegisterPage = () => {
             });
 
             if (response.ok) {
-                const data = await response.json();
-                if(data.token) {
-                    localStorage.setItem('token', data.token);
-                    console.log(data.token);
-                    router.push('/chat');
-                }
-                else {
-                    console.error('Token not found in response');
-                    alert('登录失败：未获取到令牌');
-                }
+                router.push('/login');
             } else {
                 console.error('Registration Failed');
                 const data = await response.json();
