@@ -6,6 +6,9 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const router = useRouter();
 
+  const jumptoRegister = () => {
+    router.push('/register');
+  };
   const handleLogin = async () => {
     try {   // 使用Fetch API向指定URL发送POST请求
       const response = await fetch('/api/login', {  // 转发到next.config.mjs中转发
@@ -18,8 +21,22 @@ const LoginPage = () => {
       if (response.ok) {
         router.push('/chat');
       } else {
-        router.push('/404');
         console.error('Login Failed');
+        const data = await response.json();
+        console.log(data);
+        switch(data.info) {
+          case 'Wrong password':
+            alert('密码错误');
+            break;
+          case 'Bad Method':
+            alert('错误请求');
+            break;
+          case 'User does not exist':
+            alert('用户不存在');
+            break;
+          default:
+            alert('登录失败：' + data.error.message);
+        }
       }
     }
     catch (error) {
@@ -38,6 +55,7 @@ const LoginPage = () => {
         <input type="password" id="password" value={password} onChange={e => setPassword(e.target.value)}></input>
       </div>
       <button onClick={handleLogin}>登录</button>
+      <button onClick={jumptoRegister}>注册</button>
     </div>
   );
 

@@ -27,7 +27,21 @@ const RegisterPage = () => {
                 router.push('/login');
             } else {
                 console.error('Registration Failed');
-                router.push('/404');
+                const data = await response.json();
+                console.log(data);
+                switch(data.info) {
+                    case 'User already exists':
+                        alert('用户已存在');
+                        break;
+                    case 'Bad length of [phoneNumber]':
+                        alert('电话号码长度不对');
+                        break;
+                    case 'Bad format of [email]':
+                        alert('邮箱格式不正确');
+                        break;
+                    default:
+                        alert('注册失败：' + data.error.message);
+                }
             }
         }
         catch (error) {
