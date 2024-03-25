@@ -2,10 +2,12 @@ import ChatDirectory from "@/components/ChatDirectory";
 import ChatWindow from "@/components/ChatWindow";
 import styles from '../styles/chatStyles.module.css'
 import { useRouter } from "next/router";
+const {LocalStorage} = require('node-localstorage');
 
 
 const ChatPage = () => {
   const router = useRouter();
+  const localStorage = new LocalStorage('./scratch');
   
   const MyCenter = async() => {
     const token = localStorage.getItem('token');
@@ -16,7 +18,6 @@ const ChatPage = () => {
       router.push('/login');
       return;
     };
-    // TODO
     try {
       const response = await fetch(`/api/user/${userName}`, {
         method: 'GET',

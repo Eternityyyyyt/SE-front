@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
+const {LocalStorage} = require('node-localstorage');
 
 const LoginPage = () => {
   const [userName, setUsername] = useState('');   // hook
   const [password, setPassword] = useState('');
   const router = useRouter();
+  const localStorage = new LocalStorage('./scratch');
 
   const jumptoRegister = () => {
     router.push('/register');

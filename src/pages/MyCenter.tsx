@@ -1,12 +1,14 @@
 import { useRouter } from "next/router";
-
+const {LocalStorage} = require('node-localstorage');
 
 const MyCenter = () => {
+    const localStorage = new LocalStorage('./scratch');
     const userName = localStorage.getItem('userName');
     const phoneNumber = localStorage.getItem('phoneNumber');
     const email = localStorage.getItem('email');
     const token = localStorage.getItem('token');
     const router = useRouter();
+    
     const deleteUser = async() => {
         try {
             const response = await fetch(`/api/user/${userName}`, { 
