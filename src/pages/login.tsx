@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
-const {LocalStorage} = require('node-localstorage');
+import localforage from "localforage";
 
 const LoginPage = () => {
   const [userName, setUsername] = useState('');   // hook
   const [password, setPassword] = useState('');
   const router = useRouter();
-  const localStorage = new LocalStorage('./scratch');
 
   const jumptoRegister = () => {
     router.push('/register');
@@ -24,9 +23,9 @@ const LoginPage = () => {
         const data = await response.json();
         if(data.token) {
           // 在前端存储相应信息
-          localStorage.setItem('userName', userName);
-          localStorage.setItem('password', password);
-          localStorage.setItem('token', data.token);
+          localforage.setItem('userName', userName);
+          localforage.setItem('password', password);
+          localforage.setItem('token', data.token);
           console.log(data.token);
           
           router.push('/chat');

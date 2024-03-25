@@ -1,18 +1,33 @@
 import ChatDirectory from "@/components/ChatDirectory";
 import ChatWindow from "@/components/ChatWindow";
 import styles from '../styles/chatStyles.module.css'
+import React, { useState, useEffect } from 'react';
 import { useRouter } from "next/router";
-const {LocalStorage} = require('node-localstorage');
+import localforage from "localforage";
 
 
 const ChatPage = () => {
   const router = useRouter();
-  const localStorage = new LocalStorage('./scratch');
+  const [userName, setUserName] = useState(null);
+  const [token, setToken] = useState(null);
   
+  useEffect(() => {
+    const fetchUserData = async () => {
+        try {
+            setUserName(await localforage.getItem('userName'));
+            setToken(await localforage.getItem('token'));
+        } catch (error) {
+            console.error('Error fetching user data:', error);
+        }
+    };
+    fetchUserData();
+}, []);
+
+
   const MyCenter = async() => {
-    const token = localStorage.getItem('token');
-    //tmp
-    const userName = localStorage.getItem('userName');
+    
+    console.log(userName);
+    console.log(token);
 
     if(!token) {
       router.push('/login');
@@ -27,8 +42,8 @@ const ChatPage = () => {
       });
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem('phoneNumber', data.phoneNumber);
-        localStorage.setItem('email', data.email);
+        localforage.setItem('phoneNumber', data.phoneNumber);
+        localforage.setItem('email', data.email);
         router.push('/MyCenter')
       } else {
         const data = await response.json();

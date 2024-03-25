@@ -1,13 +1,28 @@
+import React, { useState, useEffect } from 'react';
 import { useRouter } from "next/router";
-const {LocalStorage} = require('node-localstorage');
+import localforage from "localforage";
 
 const MyCenter = () => {
-    const localStorage = new LocalStorage('./scratch');
-    const userName = localStorage.getItem('userName');
-    const phoneNumber = localStorage.getItem('phoneNumber');
-    const email = localStorage.getItem('email');
-    const token = localStorage.getItem('token');
+    const [userName, setUserName] = useState(null);
+    const [phoneNumber, setPhoneNumber] = useState(null);
+    const [email, setEmail] = useState(null);
+    const [token, setToken] = useState(null);
     const router = useRouter();
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                setUserName(await localforage.getItem('userName'));
+                setPhoneNumber(await localforage.getItem('phoneNumber'));
+                setEmail(await localforage.getItem('email'));
+                setToken(await localforage.getItem('token'));
+
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        };
+        fetchUserData();
+    }, []);
     
     const deleteUser = async() => {
         try {
