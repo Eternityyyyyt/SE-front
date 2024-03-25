@@ -7,7 +7,7 @@ import { useRouter } from "next/router";
 const ChatPage = () => {
   const router = useRouter();
   
-  const myCenter = async() => {
+  const MyCenter = async() => {
     const token = localStorage.getItem('token');
     //tmp
     const userName = localStorage.getItem('userName');
@@ -61,7 +61,7 @@ const ChatPage = () => {
         <ChatDirectory />
         <ChatWindow />
       </div> 
-      <button onClick={myCenter}>个人用户中心</button>
+      <button onClick={MyCenter}>个人用户中心</button>
   </div>
   );
 };
