@@ -14,12 +14,26 @@ const LoginPage = () => {
       const response = await fetch('/api/login', {  // 转发到next.config.mjs中转发
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json' // 设置请求头信息，指定了请求体的数据类型为JSON格式
+          'Content-Type': 'application/json', // 设置请求头信息，指定了请求体的数据类型为JSON格式
         },
         body: JSON.stringify({userName, password})
       });
       if (response.ok) {
-        router.push('/chat');
+        const data = await response.json();
+        if(data.token) {
+          // 在前端存储相应信息
+          localStorage.setItem('userName', userName);
+          localStorage.setItem('password', password);
+          localStorage.setItem('token', data.token);
+          console.log(data.token);
+          
+          router.push('/chat');
+        }
+        else {
+          console.error('Token not found in response');
+          alert('登录失败：未获取到令牌');
+        }
+        
       } else {
         console.error('Login Failed');
         const data = await response.json();
