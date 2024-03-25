@@ -50,8 +50,8 @@ const LoginPage = () => {
             break;
           default:
             alert('登录失败：' + data.error.message);
-        }
-      }
+        };
+      };
     }
     catch (error) {
       console.error('Error during login:', error);

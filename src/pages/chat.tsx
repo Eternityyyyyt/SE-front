@@ -11,7 +11,6 @@ const ChatPage = () => {
     const token = localStorage.getItem('token');
     //tmp
     const userName = localStorage.getItem('userName');
-    const password = localStorage.getItem('password');
 
     if(!token) {
       router.push('/login');
@@ -31,11 +30,22 @@ const ChatPage = () => {
         localStorage.setItem('email', data.email);
         router.push('/myCenter')
       } else {
+        const data = await response.json();
+        switch(data.info) {
+          case 'Invalid or expired JWT':
+            alert('非法JWT令牌');
+            break;
+          case 'User not found':
+            alert('用户不存在');
+            break;
+          case 'Cannot view info of other users':
+            alert('不能查看其他用户信息');
+            break;
+          default:
+            alert(data.error.message);
+        };
 
-      }
-
-      
-      
+      } 
       
     } 
     catch (error) {
