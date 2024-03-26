@@ -33,8 +33,14 @@ const RegisterPage = () => {
                     case 'User already exists':
                         alert('用户已存在');
                         break;
+                    case 'Bad length of [userName]':
+                        alert('用户名长度不正确 最大为50');
+                        break;
+                    case 'Bad length of [password]':
+                        alert('密码长度不正确 最大为50');
+                        break;
                     case 'Bad length of [phoneNumber]':
-                        alert('电话号码长度不对');
+                        alert('电话号码长度不正确');
                         break;
                     case 'Bad format of [email]':
                         alert('邮箱格式不正确');
