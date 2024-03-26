@@ -28,6 +28,8 @@ const ChatPage = () => {
     
     console.log(userName);
     console.log(token);
+    setToken(await localforage.getItem('token'));
+    console.log(token);
 
     if(!token) {
       router.push('/login');

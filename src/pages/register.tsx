@@ -48,6 +48,9 @@ const RegisterPage = () => {
             console.error('Error during Registration:', error);
         }
     };
+    const gotoIndex = () => {
+        router.push('/');
+    };
 
     return (
         <div>
@@ -70,6 +73,7 @@ const RegisterPage = () => {
             </div>
             <div>
                 <button onClick={handleRegister}>注册</button>
+                <button onClick={gotoIndex}>首页</button>
             </div>
         </div>
     );
