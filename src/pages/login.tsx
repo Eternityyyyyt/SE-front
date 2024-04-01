@@ -1,62 +1,50 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
-import localforage from "localforage";
+import { setName, setToken } from "../redux/auth";
+import { useDispatch } from "react-redux";
 
 const LoginPage = () => {
-  const [userName, setUsername] = useState('');   // hook
+  const [userName, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
+  const dispatch = useDispatch();
 
   const jumptoRegister = () => {
     router.push('/register');
   };
-  const handleLogin = async () => {
-    try {   // 使用Fetch API向指定URL发送POST请求
-      const response = await fetch('/api/login', {  // 转发到next.config.mjs中转发
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json', // 设置请求头信息，指定了请求体的数据类型为JSON格式
-        },
-        body: JSON.stringify({userName, password})
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if(data.token) {
-          // 在前端存储相应信息
-          localforage.setItem('userName', userName);
-          localforage.setItem('password', password);
-          localforage.setItem('token', data.token);
-          console.log(data.token);
-          
+  
+  const handleLogin = () => {
+    fetch('/api/login',{
+      method: 'POST',
+      body: JSON.stringify({userName, password}),
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        if(Number(res.code) === 0) {
+          dispatch(setName(userName));
+          dispatch(setToken(res.token));
+          alert("登录成功" + userName);
           router.push('/chat');
         }
         else {
-          console.error('Token not found in response');
-          alert('登录失败：未获取到令牌');
+          switch(Number(res.code)) {
+            case 2:
+              alert('密码错误');
+              break;
+            case -3:
+              alert('错误请求');
+              break;
+            case 1:
+              alert('用户不存在');
+              break;
+            default:
+              alert('登录失败');
+              console.log(res.code);
+          };
         }
-        
-      } else {
-        console.error('Login Failed');
-        const data = await response.json();
-        console.log(data);
-        switch(data.info) {
-          case 'Wrong password':
-            alert('密码错误');
-            break;
-          case 'Bad Method':
-            alert('错误请求');
-            break;
-          case 'User does not exist':
-            alert('用户不存在');
-            break;
-          default:
-            alert('登录失败：' + data.error.message);
-        };
-      };
-    }
-    catch (error) {
-      console.error('Error during login:', error);
-    }
+      });
+      
+    
   };
   return (
     <div>

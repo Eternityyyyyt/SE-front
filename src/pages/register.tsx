@@ -29,24 +29,18 @@ const RegisterPage = () => {
                 console.error('Registration Failed');
                 const data = await response.json();
                 console.log(data);
-                switch(data.info) {
-                    case 'User already exists':
-                        alert('用户已存在');
+                switch(Number(data.code)) {
+                    case 1:
+                        alert('User already exist');
                         break;
-                    case 'Bad length of [userName]':
-                        alert('用户名长度不正确 最大为50');
+                    case -2:
+                        alert('Bad length of [phoneNumber]');
                         break;
-                    case 'Bad length of [password]':
-                        alert('密码长度不正确 最大为50');
-                        break;
-                    case 'Bad length of [phoneNumber]':
-                        alert('电话号码长度不正确');
-                        break;
-                    case 'Bad format of [email]':
-                        alert('邮箱格式不正确');
+                    case -3:
+                        alert('Bad method');
                         break;
                     default:
-                        alert('注册失败：' + data.error.message);
+                        alert('注册失败');
                 }
             }
         }
