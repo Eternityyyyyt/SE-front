@@ -52,8 +52,8 @@ const SearchUser = () => {
                         alert("He/She is already your friend");
                         break;
                     case 6:
-                            alert("He/she has already sent a friend request to you, please handle it first")
-                            break;
+                        alert("He/she has already sent a friend request to you, please handle it first")
+                        break;
                     default:
                         alert("Something Wrong!");
                 }
