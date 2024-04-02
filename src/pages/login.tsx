@@ -1,42 +1,64 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
+import { setName, setToken } from "../redux/auth";
+import { useDispatch } from "react-redux";
 
 const LoginPage = () => {
-  const [username, setUsername] = useState('');
+  const [userName, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
+  const dispatch = useDispatch();
 
-  const handleLogin = async () => {
-    try {   // 使用Fetch API向指定URL发送POST请求
-      const response = await fetch('/login', {  // 转发到next.config.mjs中转发
-        method: 'POST',
-        headers: {
-          'Content-Type':'application/json' // 设置请求头信息，指定了请求体的数据类型为JSON格式
-        },
-        body: JSON.stringify({username, password})
+  const jumptoRegister = () => {
+    router.push('/register');
+  };
+  
+  const handleLogin = () => {
+    fetch('/api/login',{
+      method: 'POST',
+      body: JSON.stringify({userName, password}),
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        if(Number(res.code) === 0) {
+          dispatch(setName(userName));
+          dispatch(setToken(res.token));
+          alert("登录成功" + userName);
+          router.push('/chat');
+        }
+        else {
+          switch(Number(res.code)) {
+            case 2:
+              alert('密码错误');
+              break;
+            case -3:
+              alert('错误请求');
+              break;
+            case 1:
+              alert('用户不存在');
+              break;
+            default:
+              alert('登录失败');
+              console.log(res.code);
+          };
+        }
       });
-      if(response.ok) {
-        router.push('/chat');
-      } else {
-        console.error('Login Failed');
-      } 
-    }
-    catch(error) {
-        console.error('Error during login:', error);
-    }
+      
+    
   };
   return (
     <div>
       <h1>Login</h1>
       <div>
-        <label htmlFor="username">用户名：</label>
-        <input type="text" id="username" value={username} onChange={e => setUsername(e.target.value)}></input>
+        <label htmlFor="userName">用户名：</label>
+        <input type="text" id="userName" value={userName} onChange={e => setUsername(e.target.value)}></input>
       </div>
       <div>
-      <label htmlFor="password">密码：</label>
-      <input type="password" id="password" value={password} onChange={e => setPassword(e.target.value)}></input>
+        <label htmlFor="password">密码：</label>
+        <input type="password" id="password" value={password} onChange={e => setPassword(e.target.value)}></input>
       </div>
-      <button onClick={handleLogin}>Login</button>
+      <button onClick={handleLogin}>登录</button>
+      <button onClick={jumptoRegister}>注册</button>
     </div>
   );
 

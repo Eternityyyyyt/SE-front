@@ -7,20 +7,22 @@
 }
 
 .chat-window {
-  width: 60%;
+  width: 75%;
   padding: 20px;
-  border: 1px solid #b60d0d;
+  border: 1px solid #b3c6a3;
   border-radius: 8px;
-  background-color: #501111;
+  background-color: #f9f2f2;
   margin-right: 20px;
+  height: 100vh; /* 设置高度为视口高度的100% */
 }
 
 .chat-directory {
-  width: 30%;
+  width: 25%;
   padding: 20px;
-  border: 1px solid #b50404b7;
+  border: 1px solid #296f1bb7;
   border-radius: 8px;
-  background-color: #851a1a;
+  background-color: #f2efef;
+  height: 100vh; /* 设置高度为视口高度的100% */
 }
 
 /* Chat Directory Styles */
@@ -30,7 +32,7 @@
 }
 
 .chat-room:hover {
-  background-color: #711d1d;
+  background-color: #74ceb9;
 }
 
 /* Chat Window Styles */
@@ -38,7 +40,7 @@
   margin-bottom: 10px;
   padding: 10px;
   border-radius: 8px;
-  background-color: #9a1717;
+  background-color: #6ab572;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 

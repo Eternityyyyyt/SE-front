@@ -6,9 +6,10 @@ const nextConfig = {
 
     async rewrites() {
         return [{
-            source: "/:path*",
+            source: "/api/:path*",
             // Change to your backend URL in production
-            destination: "http://127.0.0.1/:path*",
+            // "https://SE-back-magic.app.secoder.net/:path*"
+            destination: process.env.NODE_ENV !== 'production' ? "http://127.0.0.1:8000/:path*" :  "https://se-back-magic.app.secoder.net/:path*",
         }];
     }
 };
