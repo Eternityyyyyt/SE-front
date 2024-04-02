@@ -138,7 +138,6 @@ const FriendRequestList = () => {
                     {friendRequests.map((request) => (
                         <li key={request.request_id}>
                             <p>Sender: {request.sender}</p>
-                            <p>Receiver: {request.receiver}</p>
                             <p>Create Time: {request.created_time}</p>
                             <p>Status: {getStatusText(request.status)}</p>
                             <p>Request Message: {request.requestMessage}</p>
