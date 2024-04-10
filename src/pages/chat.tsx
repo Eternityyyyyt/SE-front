@@ -72,6 +72,9 @@ const ChatPage = () => {
     dispatch(resetAuth());
     router.push('/');
   };
+  const FriendList = () => {
+    router.push('/friendList');
+  };
 
   return (
     <div>
@@ -80,6 +83,7 @@ const ChatPage = () => {
         <ChatWindow />
       </div> 
       <button onClick={FriendRequestList}>好友申请列表</button>
+      <button onClick={FriendList}>好友列表</button>
       <button onClick={MyCenter}>个人用户中心</button>
       <button onClick={SearchUser}>搜索用户</button>
       <button onClick={gotoIndex}>退出登录</button>
