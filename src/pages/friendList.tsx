@@ -1,9 +1,10 @@
 // 好友列表页面
 import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from "@/redux/store";
 import { useRouter } from 'next/router';
 
+import { setFriendName } from '@/redux/friend';
 
 interface FriendDataList {
     nickname: string;
@@ -15,6 +16,7 @@ const FriendList = () => {
     const token = useSelector((state:RootState) => state.auth.token);
     const [friendList, setFriendList] = useState<FriendDataList[]>([]);
     const router = useRouter();
+    const dispatch = useDispatch();
 
     useEffect(() => {
         const fetchData = async() => {
@@ -49,6 +51,10 @@ const FriendList = () => {
     }, [userName]);
 
     const GoBack = () => {router.back();};
+    const GetFriendData = (nickname: string) => {
+        dispatch(setFriendName(nickname));      // 将点击对应的用户nickname存储在前端
+        router.push('/friendData');
+    };
     return (
         <div>
             <button onClick={GoBack}>返回</button>
@@ -58,9 +64,11 @@ const FriendList = () => {
                 <ul>
                     {friendList.map((request) => (
                         <li>
-                            <p>Nickname: {request.nickname}</p>
                             {/* 头像还没有 */}
                             <p>Avatar: {request.avatar}</p>
+                            <button onClick={() => GetFriendData(request.nickname)}>头像</button>
+                            <p>Nickname: {request.nickname}</p>
+                            
                         </li>
                         
                     ))}
