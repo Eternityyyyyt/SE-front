@@ -14,7 +14,7 @@ interface FriendDataList {
 const FriendList = () => {
     const userName = useSelector((state:RootState) => state.auth.name);
     const token = useSelector((state:RootState) => state.auth.token);
-    const [friendList, setFriendList] = useState<FriendDataList[]>([]);
+    const [friendDataList, setFriendDataList] = useState<FriendDataList[]>([]);
     const router = useRouter();
     const dispatch = useDispatch();
 
@@ -29,7 +29,7 @@ const FriendList = () => {
                 });
                 const data = await response.json();
                 if(Number(data.code) === 0) {
-                    setFriendList(data.FriendDataList);
+                    setFriendDataList(data.friendDataList);
                 } else {
                     switch(Number(data.code)) {
                         case 2:
@@ -58,11 +58,11 @@ const FriendList = () => {
     return (
         <div>
             <button onClick={GoBack}>返回</button>
-            {friendList.length === 0 ? (
+            {friendDataList.length === 0 ? (
                 <p>No Friend</p>
             ): (
                 <ul>
-                    {friendList.map((request) => (
+                    {friendDataList.map((request) => (
                         <li key={request.nickname}>
                             {/* 头像还没有 */}
                             <p>Avatar: {request.avatar}</p>
