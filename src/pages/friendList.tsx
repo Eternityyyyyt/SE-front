@@ -63,7 +63,7 @@ const FriendList = () => {
             ): (
                 <ul>
                     {friendList.map((request) => (
-                        <li>
+                        <li key={request.nickname}>
                             {/* 头像还没有 */}
                             <p>Avatar: {request.avatar}</p>
                             <button onClick={() => GetFriendData(request.nickname)}>头像</button>
