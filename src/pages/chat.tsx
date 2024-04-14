@@ -1,7 +1,4 @@
-import ChatDirectory from "@/components/ChatDirectory";
-import ChatWindow from "@/components/ChatWindow";
 import HomePage from "@/components/HomePage";
-import styles from '../styles/chatStyles.module.css'
 import React, { useEffect } from 'react';
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
@@ -78,16 +75,15 @@ const ChatPage = () => {
   };
 
   // 创建私聊
+  // 需要代替
   const createPrivateChat = () => {
     router.push('createPrivate')
   };
 
   return (
     <div>
-      <div className={styles['chat-container']}>
-        {/* <ChatDirectory /> */}
-        {/* <ChatWindow /> */}
-        <HomePage />
+      <div>
+        <HomePage/>
       </div> 
       <div>
         <button onClick={createPrivateChat}>创建私聊</button>
