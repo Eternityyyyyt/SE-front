@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { RootState } from "@/redux/store";
 import { useSelector, useDispatch } from "react-redux";
-import { addChatId } from "@/redux/chat";
+import { addChatId } from "@/redux/auth";
 
 
 const CreatePrivateChat = () => {
