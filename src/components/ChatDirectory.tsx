@@ -5,16 +5,16 @@ const ChatDirectory:React.FC<{}> = () => {
         <div className={styles['chat-directory']}>
             <h2>好友列表</h2>
             <div className={styles['chat-room']}>
-            张皓晨
+            张皓晨demo
             </div>
             <div className={styles['chat-room']}>
-            周子恒
+            周子恒demo
             </div>
             <div className={styles['chat-room']}>
-            俞鹤扬
+            俞鹤扬demo
             </div>
             <div className={styles['chat-room']}>
-            郑凯天
+            郑凯天demo
             </div>
         </div>
     );

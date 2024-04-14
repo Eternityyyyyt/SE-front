@@ -76,17 +76,28 @@ const ChatPage = () => {
     router.push('/friendList');
   };
 
+  // 创建私聊
+  const createPrivateChat = () => {
+    router.push('createPrivate')
+  };
+
   return (
     <div>
       <div className={styles['chat-container']}>
         <ChatDirectory />
         <ChatWindow />
       </div> 
-      <button onClick={FriendRequestList}>好友申请列表</button>
-      <button onClick={FriendList}>好友列表</button>
-      <button onClick={MyCenter}>个人用户中心</button>
-      <button onClick={SearchUser}>搜索用户</button>
-      <button onClick={gotoIndex}>退出登录</button>
+      <div>
+        <button onClick={createPrivateChat}>创建私聊</button>
+      </div>
+      <div>
+        <button onClick={FriendRequestList}>好友申请列表</button>
+        <button onClick={FriendList}>好友列表</button>
+        <button onClick={MyCenter}>个人用户中心</button>
+        <button onClick={SearchUser}>搜索用户</button>
+        <button onClick={gotoIndex}>退出登录</button>
+      </div>
+      
   </div>
   );
 };
