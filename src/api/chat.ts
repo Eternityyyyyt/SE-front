@@ -2,6 +2,7 @@
 import { Conversation, Message } from './types';
 import axios from 'axios';
 
+
 export type AddMessageArgs = {
     userName: string;
     chat_id: number;
@@ -14,13 +15,17 @@ export async function addMessage({
     chat_id,
     content,
     replying,               // 回应哪条消息的message id
-  }: AddMessageArgs) {
+  }: AddMessageArgs, token:string) {
     const { data } = await axios.post(`/api/chat/message`, {
       userName: userName,   // 发送者的用户名
       chat_id: chat_id,     // 会话ID
       content: content,     // 消息内容
       replying: replying,
-    });
+    },{
+      headers: {
+          Authorization: `${token}`
+      }
+  });
     return data;            // message_id (data.data.message_id)
 }
 
@@ -31,11 +36,15 @@ export type AddConversationArgs = {
     memberName: string;
 }
 // 向服务器添加一个新会话 Private Chat
-export async function addConversation({ createrName, memberName }: AddConversationArgs) {
+export async function addConversation({ createrName, memberName }: AddConversationArgs, token:string) {
     const { data } = await axios.post("/api/chat/createPrivate", {
       createrName,
       memberName,
-    });
+    },{
+      headers: {
+          Authorization: `${token}`
+      }
+  });
     return data.data as Conversation; // 返回一个Conversation类型
 }
 
@@ -51,9 +60,12 @@ export async function getMessages({
     chat_id,
     after,
     limit,
-  }: GetMessagesArgs) {
+  }: GetMessagesArgs, token:string) {
     const messages: Message[] = [];
       const { data } = await axios.get("/api/chat/message", {
+        headers: {
+          Authorization: `${token}`
+        },
         params: {
           userName: userName,   // 查询消息的用户名
           chat_id: chat_id,     // 查询消息的会话 ID
