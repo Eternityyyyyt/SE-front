@@ -1,5 +1,6 @@
 import ChatDirectory from "@/components/ChatDirectory";
 import ChatWindow from "@/components/ChatWindow";
+import HomePage from "@/components/HomePage";
 import styles from '../styles/chatStyles.module.css'
 import React, { useEffect } from 'react';
 import { useRouter } from "next/router";
@@ -84,8 +85,9 @@ const ChatPage = () => {
   return (
     <div>
       <div className={styles['chat-container']}>
-        <ChatDirectory />
-        <ChatWindow />
+        {/* <ChatDirectory /> */}
+        {/* <ChatWindow /> */}
+        <HomePage />
       </div> 
       <div>
         <button onClick={createPrivateChat}>创建私聊</button>
