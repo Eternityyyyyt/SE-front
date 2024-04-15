@@ -5,7 +5,7 @@ import styles from './ChatBox.module.css';
 import MessageBubble from './MessageBubble';
 import { Conversation, Message } from '../api/types';
 import { addMessage } from '../api/chat';
-import { getConversationDisplayName } from '../api/utils';
+import { getConversationDisplayName ,getConversationDisplayMembers} from '../api/utils';
 // import { db } from '../api/db';
 import { RootState } from '@/redux/store';
 import { useSelector } from 'react-redux';
@@ -74,7 +74,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
         <>
           <div className={styles.title}>
             {getConversationDisplayName(conversation)}
-            <div>{memberName}</div>
+            <div>{getConversationDisplayMembers(conversation,userName)}</div>
           </div>
           
           <Divider className={styles.divider} />

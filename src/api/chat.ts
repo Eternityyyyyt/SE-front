@@ -28,14 +28,14 @@ export async function addMessage({
     return data;            // message_id (data.data.message_id)
 }
 
-export type AddConversationArgs = {
+export type AddPrivateConversationArgs = {
     // type: 'private_chat' | 'group_chat';
     // members: string[];
     createrName: string;
     memberName: string;
 }
-// 向服务器添加一个新会话 Private Chat
-export async function addConversation({ createrName, memberName }: AddConversationArgs, token:string) {
+// 向服务器添加一个新私聊 Private Chat
+export async function addPrivateConversation({ createrName, memberName }: AddPrivateConversationArgs, token:string) {
     const { data } = await axios.post("/api/chat/createPrivate", {
       createrName,
       memberName,
@@ -44,7 +44,15 @@ export async function addConversation({ createrName, memberName }: AddConversati
           Authorization: `${token}`
       }
   });
-    return data.data as Conversation; // 返回一个Conversation类型
+    const { chat_id, alreadyCreated } = data.data;
+    let members: string[] = [createrName,memberName];
+    let isGroup:Boolean = false
+    return {
+      chat_id,
+      members,
+      isGroup
+    } as Conversation;
+    //return data.data as Conversation; // 返回一个Conversation类型
 }
 
 export type GetMessagesArgs = {

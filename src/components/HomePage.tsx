@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Message, Conversation } from '../api/types';
 // import { db } from '../api/db';
-import { addConversation} from '../api/chat';
+import { addPrivateConversation} from '../api/chat';
 import { RootState } from '@/redux/store';
 import { useSelector } from 'react-redux';
 import Chatbox from './ChatBox';
@@ -22,8 +22,9 @@ const HomePage = () => {
 
     // 创建私聊
     const createPrivateChat = async() => {
-      // 判断是否为好友
-        const newChat = await addConversation({createrName, memberName}, token); // 异步函数需要用await
+      // 判断是否为好友 
+        
+        const newChat = await addPrivateConversation({createrName, memberName}, token); // 异步函数需要用await
         const chatId = newChat.chat_id;
         setChat(newChat);
         // db.addChatId(createrName, chatId);  // 在相应表单中增加

@@ -5,6 +5,8 @@ import { useRouter } from "next/router";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { useEffect ,useState } from "react";
+import { addPrivateConversation} from '../api/chat';
+import { Conversation } from "@/api/types";
 
 const FriendData = () => {
     const router = useRouter();
@@ -12,12 +14,14 @@ const FriendData = () => {
     const friendName = useSelector((state:RootState) => state.friend.friendName);//friend userName
     const userName = useSelector((state:RootState) => state.auth.name);
     const token = useSelector((state:RootState) => state.auth.token);
+    
+    const createrName = userName;
+    const memberName = friendName;
     // GET 返回的好友信息
     const [fUserName, setFUserName] = useState('');
     const [fPhoneNumber, setFPhoneNumber] = useState('');
     const [fEmail, setFEmail] = useState('');
     const [fTag, setFTag] = useState<string[]>([]);
-
 
     useEffect(() => {
         const fetchData = async() => {
@@ -53,7 +57,12 @@ const FriendData = () => {
         fetchData();
     }, []);
 
-    const GoToChat = () => {
+    const GoToChat = async() => {
+        //const newChat = await addPrivateConversation({createrName, memberName}, token); // 异步函数需要用await
+        
+        // db.addChatId(createrName, chatId);  // 在相应表单中增加
+        // console.log(chatId);
+          
         router.push('/chat');
     };
     const GoBack = () => {router.back();};

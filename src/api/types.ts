@@ -11,9 +11,9 @@ export type Message = {
   
 export type Conversation = {
     chat_id: number;            // 会话ID
-    alreadyCreated: boolean;    // 是否被创建了
     // type: 'group_chat' | 'private_chat';
-    // members: string[];
+    members: string[];
+    isGroup:boolean;
     // unreadCount?: number;
 };
   
