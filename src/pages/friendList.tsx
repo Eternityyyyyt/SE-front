@@ -4,9 +4,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from "@/redux/store";
 import { useRouter } from 'next/router';
 
-import { setFriendName } from '@/redux/friend';
+import { setFriendName,setFriendNickname } from '@/redux/friend';
 
 interface FriendDataList {
+    userName: string;
     nickname: string;
     avatar: string;
 }
@@ -50,10 +51,11 @@ const FriendList = () => {
         fetchData();
     }, [userName]);
 
-    const GoBack = () => {router.back();};
-    const GetFriendData = (nickname: string) => {
-        dispatch(setFriendName(nickname));      // 将点击对应的用户nickname存储在前端
-        router.push('/friendData');
+    const GoBack = () => {router.push(`/chat`);};
+    const GetFriendData = (userName: string,nickname:string) => {
+        dispatch(setFriendName(userName));
+        dispatch(setFriendNickname(nickname));      // 将点击对应的用户nickname存储在前端
+        router.push(`/friendData/`);
     };
     return (
         <div>
@@ -65,10 +67,10 @@ const FriendList = () => {
                     {friendDataList.map((request) => (
                         <li key={request.nickname}>
                             {/* 头像还没有 */}
+                            <p>UserName: {request.userName}</p>
                             <p>Avatar: {request.avatar}</p>
-                            <button onClick={() => GetFriendData(request.nickname)}>头像</button>
                             <p>Nickname: {request.nickname}</p>
-                            
+                            <button onClick={() => GetFriendData(request.userName , request.nickname)}>查看详细信息</button>
                         </li>
                         
                     ))}
