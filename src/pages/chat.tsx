@@ -74,19 +74,10 @@ const ChatPage = () => {
     router.push('/friendList');
   };
 
-  // 创建私聊
-  // 需要代替
-  const createPrivateChat = () => {
-    router.push('createPrivate')
-  };
-
   return (
     <div>
       <div>
         <HomePage/>
-      </div> 
-      <div>
-        <button onClick={createPrivateChat}>创建私聊</button>
       </div>
       <div>
         <button onClick={FriendRequestList}>好友申请列表</button>

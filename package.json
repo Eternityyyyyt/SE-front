@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.2.2",
-    "antd": "^5.15.3",
+    "ahooks": "^3.7.11",
+    "antd": "^5.16.2",
     "axios": "^1.6.8",
     "dexie": "^4.0.4",
     "localforage": "^1.10.0",
