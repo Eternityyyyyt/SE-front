@@ -12,7 +12,7 @@ import { useSelector } from 'react-redux';
 
 export type ChatboxProps = {
   me: string; // 当前用户
-  conversation: Conversation; // 当前选中的会话 (可能为空)
+  conversation?: Conversation; // 当前选中的会话 (可能为空)
   lastUpdateTime?: number; // 本地消息数据最后更新时间，用于触发该组件数据更新
 };
 
@@ -28,7 +28,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
   const messageEndRef = useRef<HTMLDivElement>(null); // 指向消息列表末尾的引用，用于自动滚动
   const token = useSelector((state:RootState) => state.auth.token);
   const userName = useSelector((state:RootState) => state.auth.name);
-  const chat_id = conversation.chat_id;
+  const chat_id = conversation?.chat_id;
   const replying = 0; // 先不引用
 
   // 使用ahooks的useRequest钩子从IndexedDB异步获取消息数据，依赖项为lastUpdateTime
@@ -37,6 +37,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
       if (!conversation) return [];
       const curMessages = cachedMessagesRef.current;
       const newMessages = await db.getCachedMessages(conversation); // 从本地数据库获取当前会话的所有消息
+      console.log(newMessages);
       cachedMessagesRef.current = newMessages;
       // 设置定时器以确保滚动操作在数据更新后执行
       setTimeout(() => {
@@ -57,6 +58,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
     }
     const content = inputValue.trim();
     setSending(true);
+    if(!chat_id) return; // 如果chat_id为空，return
     addMessage({userName, chat_id, content, replying},token) // 调用API发送消息
       .then(() => setInputValue(''))
       .catch(() => message.error('消息发送失败'))
@@ -88,7 +90,6 @@ const Chatbox: React.FC<ChatboxProps> = ({
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onPressEnter={(e) => {
-              // 按下Enter键时发送消息，除非同时按下了Shift或Ctrl
               if (!e.shiftKey && !e.ctrlKey) {
                 e.preventDefault(); // 阻止默认事件
                 e.stopPropagation(); // 阻止事件冒泡
