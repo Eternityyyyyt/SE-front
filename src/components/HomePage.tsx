@@ -1,11 +1,10 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Message, Conversation } from '../api/types';
-import { db } from '../api/db';
-import { addConversation, getMessages } from '../api/chat';
+// import { db } from '../api/db';
+import { addConversation} from '../api/chat';
 import { RootState } from '@/redux/store';
 import { useSelector } from 'react-redux';
 import Chatbox from './ChatBox';
-import styles from './HomePage.module.css'
 
 
 

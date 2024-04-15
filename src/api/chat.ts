@@ -48,33 +48,33 @@ export async function addConversation({ createrName, memberName }: AddConversati
     return data.data as Conversation; // 返回一个Conversation类型
 }
 
-export type GetMessagesArgs = {
-    userName: string;
-    chat_id: number;
-    after?: number; // 可能没有消息，某一时间戳，一般为最后一条消息的时间戳
-    limit?: number; // 可以不设置，默认为100
-};
+// export type GetMessagesArgs = {
+//     userName: string;
+//     chat_id: number;
+//     after?: number; // 可能没有消息，某一时间戳，一般为最后一条消息的时间戳
+//     limit?: number; // 可以不设置，默认为100
+// };
 // 获取消息列表
-export async function getMessages({
-    userName,
-    chat_id,
-    after,
-    limit,
-  }: GetMessagesArgs, token:string) {
-    const messages: Message[] = [];
-      const { data } = await axios.get("/api/chat/message", {
-        headers: {
-          Authorization: `${token}`
-        },
-        params: {
-          userName: userName,   // 查询消息的用户名
-          chat_id: chat_id,     // 查询消息的会话 ID
-          after: after,         // 表示从此时间戳之后的消息
-          limit: limit,         // 每次请求的消息数量限制
-        },
-      });
-      data.data.forEach((item: Message) => messages.push(item)); // 将获取到的消息添加到列表中
-      after = messages[messages.length - 1].create_time; // 更新游标为最后一条消息的时间戳，用于下轮查询
-    // 得到chat_id的after后的所有消息，返回一个Message List
-    return messages;
-}
+// export async function getMessages({
+//     userName,
+//     chat_id,
+//     after,
+//     limit,
+//   }: GetMessagesArgs, token:string) {
+//     const messages: Message[] = [];
+//       const { data } = await axios.get("/api/chat/message", {
+//         headers: {
+//           Authorization: `${token}`
+//         },
+//         params: {
+//           userName: userName,   // 查询消息的用户名
+//           chat_id: chat_id,     // 查询消息的会话 ID
+//           after: after,         // 表示从此时间戳之后的消息
+//           limit: limit,         // 每次请求的消息数量限制
+//         },
+//       });
+//       data.data.forEach((item: Message) => messages.push(item)); // 将获取到的消息添加到列表中
+//       after = messages[messages.length - 1].create_time; // 更新游标为最后一条消息的时间戳，用于下轮查询
+//     // 得到chat_id的after后的所有消息，返回一个Message List
+//     return messages;
+// }
