@@ -16,16 +16,20 @@ const HomePage = () => {
     const [chat, setChat] = useState<Conversation>();
     const [lastUpdateTime, setLastUpdateTime] = useState<number>(0);
     
+
+    
     
 
     // 创建私聊
     const createPrivateChat = async() => {
+      // 判断是否为好友
         const newChat = await addConversation({createrName, memberName}, token); // 异步函数需要用await
         const chatId = newChat.chat_id;
         setChat(newChat);
         // db.addChatId(createrName, chatId);  // 在相应表单中增加
-        console.log(chatId);
+        // console.log(chatId);
     }
+
     
 
   
@@ -38,7 +42,7 @@ const HomePage = () => {
         </div>
         <button onClick={createPrivateChat}>创建聊天</button>
 
-        {<Chatbox me={createrName} conversation={chat} lastUpdateTime={lastUpdateTime}/>}
+        {<Chatbox me={createrName} conversation={chat} lastUpdateTime={lastUpdateTime} memberName={memberName}/>}
     </div>
   );
 };

@@ -6,7 +6,7 @@ import MessageBubble from './MessageBubble';
 import { Conversation, Message } from '../api/types';
 import { addMessage } from '../api/chat';
 import { getConversationDisplayName } from '../api/utils';
-import { db } from '../api/db';
+// import { db } from '../api/db';
 import { RootState } from '@/redux/store';
 import { useSelector } from 'react-redux';
 
@@ -14,6 +14,7 @@ export type ChatboxProps = {
   me: string; // 当前用户
   conversation?: Conversation; // 当前选中的会话 (可能为空)
   lastUpdateTime?: number; // 本地消息数据最后更新时间，用于触发该组件数据更新
+  memberName: string;
 };
 
 // 聊天框组件
@@ -21,6 +22,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
   me,
   conversation,
   lastUpdateTime,
+  memberName,
 }) => {
   const cachedMessagesRef = useRef<Message[]>([]); // 使用ref存储组件内缓存的消息列表
   const [sending, setSending] = useState(false); // 控制发送按钮的状态
@@ -36,9 +38,10 @@ const Chatbox: React.FC<ChatboxProps> = ({
     async () => {
       if (!conversation) return [];
       const curMessages = cachedMessagesRef.current;
-      const newMessages = await db.getCachedMessages(conversation); // 从本地数据库获取当前会话的所有消息
-      console.log(newMessages);
-      cachedMessagesRef.current = newMessages;
+      // 3 line db related
+      //const newMessages = await db.getCachedMessages(conversation); // 从本地数据库获取当前会话的所有消息
+      //console.log(newMessages);
+      //cachedMessagesRef.current = newMessages;
       // 设置定时器以确保滚动操作在数据更新后执行
       setTimeout(() => {
         messageEndRef.current?.scrollIntoView({
@@ -71,7 +74,9 @@ const Chatbox: React.FC<ChatboxProps> = ({
         <>
           <div className={styles.title}>
             {getConversationDisplayName(conversation)}
+            <div>{memberName}</div>
           </div>
+          
           <Divider className={styles.divider} />
         </>
       )}
