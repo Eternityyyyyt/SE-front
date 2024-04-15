@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Input, Button, Divider, message } from 'antd';
 import { useRequest } from 'ahooks';
-import styles from './Chatbox.module.css';
+import styles from './ChatBox.module.css';
 import MessageBubble from './MessageBubble';
 import { Conversation, Message } from '../api/types';
 import { addMessage } from '../api/chat';
