@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 
 const SearchUser = () => {
     const [userName, setUsername] = useState('');
+    const [gotUserName, setGotUsername] = useState('');
     const [nickname, setNickname] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [email, setEmail] = useState('');
@@ -22,7 +23,7 @@ const SearchUser = () => {
     const token = useSelector((state:RootState) => state.auth.token);
     // 点击发送发送申请按钮
     const handleFriendRequest = () => {
-        fetch(`/api/sendFriendRequest/${userName}`, {
+        fetch(`/api/sendFriendRequest/${gotUserName}`, {
             method: 'POST',
             headers: {
                 'Authorization': `${token}` // 发送本地token到后端
@@ -70,13 +71,15 @@ const SearchUser = () => {
         .then((res) => res.json())
         .then((res) => {
             if(Number(res.code) === 0) {
+                setGotUsername(userName);
                 setNickname(res.userData.nickname);
                 setPhoneNumber(res.userData.phoneNumber);
                 setEmail(res.userData.email);
                 setSendBySearch(true);
             }
             else {
-                setUsername('');
+                setGotUsername('')
+                //setUsername('');
                 setNickname('');
                 setPhoneNumber('');
                 setEmail('');
@@ -144,7 +147,7 @@ const SearchUser = () => {
             </div>
             <button onClick={Search}>搜索</button>
             <h2>搜索结果：</h2>
-            <h3>用户名：{userName}</h3>
+            <h3>用户名：{gotUserName}</h3>
             <h3>昵称：{nickname}</h3>
             <h3>电话号码：{phoneNumber}</h3>
             <h3>邮箱：{email}</h3>
