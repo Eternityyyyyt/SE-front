@@ -1,10 +1,12 @@
-import HomePage from "@/components/HomePage";
+import dynamic from 'next/dynamic';
+// import HomePage from "@/components/HomePage";
 import React, { useEffect } from 'react';
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { setPhoneNumber, setEmail, setNickname, resetAuth } from "@/redux/auth";
 
+const HomePage = dynamic(() => import('@/components/HomePage'), { ssr: false });
 
 const ChatPage = () => {
   const router = useRouter();
