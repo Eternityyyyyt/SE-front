@@ -1,67 +1,71 @@
-// import Dexie from 'dexie';
-// import { Conversation, Message, ActiveConversation} from './types';
-// import { getMessages } from './chat';           // 获取消息列表，返回一个Message类型的List；参数提供？
+import Dexie from 'dexie';
+import { Conversation, Message } from './types';
+import { getConversations,getMessages } from './chat';           // 获取消息列表，返回一个Message类型的List；参数提供？
 
-// export class CachedData extends Dexie {
-//   messages: Dexie.Table<Message, number>;
-//   conversations: Dexie.Table<Conversation, number>;
-//   activeConversations: Dexie.Table<ActiveConversation, string>; //userName作为主键
+export class CachedData extends Dexie {
+  messages: Dexie.Table<Message, number>;// message_id作为主键
+  conversations: Dexie.Table<Conversation, number>; //chat_id作为主键
+  activeConversationId: number | null;
 
-//   constructor() {
-//     super('CachedData');
-//     this.version(1).stores({
-//       messages: '&message_id, senderNickname, chat_id, create_time, replying, repliedCount', // messsage_id作为主键
-//       conversations: '&chat_id, alreadyCreated',                                             // chat_id作为主键
-//       activeConversations: '&userName, chatIds',
-//     });
-//     this.messages = this.table('messages');
-//     this.conversations = this.table('conversations');
-//     this.activeConversations = this.table('activeConversations');
-//   }
+  constructor() {
+    super('CachedData');
+    this.version(1).stores({
+      messages: '&message_id, chat_id, content, created_time, sender,replying, repliedCount', // messsage_id作为主键
+      conversations: '&chat_id, memberList, isGroup, owner, chatName',                       // chat_id作为主键
+    });
+    this.messages = this.table('messages');
+    this.conversations = this.table('conversations');
+    this.activeConversationId = null;
+  }
 
-//   async clearCachedData() {
-//     await this.messages.clear();
-//     await this.conversations.clear();
-//   }
+  async clearCachedData() {
+    await this.messages.clear();
+    await this.conversations.clear();
+  }
 
-//   // 拉取最新消息并更新本地缓存
-//   // 在HomePage中为每一个active chat调用这个函数
-//   async pullMessages(userName: string, chat_id: number, after: number, limit: number, token: string) {
-//     const newMessages = await getMessages({ userName, chat_id, after, limit }, token);     // 返回一个 Message List
-//     await this.messages.bulkPut(newMessages);   // 批量添加到message表单的数据库中
-//     await this.updateUnreadCounts(newMessages); // 未读消息计数
-//   }
+  // 拉取最新消息并更新本地缓存
+  async pullMessages(me: string , token:string) {
+    const latestMessage = await this.messages.orderBy('created_time').last(); // 获取本地缓存中最新的一条消息
+    const cursor = latestMessage?.created_time; // 以最新消息的时间戳作为游标
 
-//   async updateUnreadCounts(messages: Message[]) {
-//     // Implement this function to update unread counts for conversations
-//   }
+    const newMessages = await getMessages({ userName:me, after:cursor },token); // 从服务器获取更新的消息列表
+    const convIds = newMessages.map((item) => item.chat_id);
+    await this.messages.bulkPut(newMessages); // 使用bulkPut方法批量更新本地缓存
 
-//   // 返回chat_id下已经存储在前端的Message List
-//   // 在HomePage中调用然后排序得道最近一条消息作为时间戳
-//   async getCachedMessages(conversation: Conversation) {
-//     return this.messages
-//       .where('chat_id')
-//       .equals(conversation.chat_id)
-//       .toArray();
-//   }
+    const newConvIds = Array.from(new Set(convIds)); // 获取新出现的会话 ID
+    const cachedConvIds = new Set(
+      (await this.conversations.where('chat_id').anyOf(newConvIds).toArray()).map(
+        (item) => item.chat_id
+      )
+    ); // 查询本地已经存在的会话信息
+    const missingConvIds = newConvIds.filter((chat_id) => !cachedConvIds.has(chat_id));
+    await this.pullConversations(me,missingConvIds,token);
 
-//   // 在activeConversations表单下以userName为主键的项中增加chat_id到chatId[]中
-//   async addChatId(userName: string, chat_id: number) {
-//     const userRecord = await db.activeConversations.get(userName); // number List
-//       // 检查是否存在记录
-//     if (userRecord) {
-//         // 如果记录已存在，则将 chat_id 添加到 chatId[] 中
-//         const updatedChatIds = userRecord.chatIds.concat(chat_id);
-//         await db.activeConversations.update(userName, { chatIds: updatedChatIds });
-//     } else {
-//         // 如果记录不存在，则创建新记录并将 chat_id 添加到 chatId[] 中
-//         await db.activeConversations.add({ userName: userName, chatIds: [chat_id] });
-//       }
-//   }
+    await this.updateUnreadCounts(newMessages);
+  }
 
-//   async getUserId(userName: string) {
-//     return this.activeConversations.get(userName);
-//   }
-// }
+  // 从服务器拉取指定会话信息并更新本地缓存
+  async pullConversations(me:string , convIds: number[],token:string) {
+    if (convIds.length) {
+      const newConversations = await getConversations({userName:me, idList: convIds },token); // 从服务器批量获取会话信息
+      await this.conversations.bulkPut(newConversations); // 使用bulkPut方法批量更新本地缓存
+    }
+  }
+  // 根据新消息批量更新会话的未读计数
+  async updateUnreadCounts(messages: Message[]) {
+    // Implement this function to update unread counts for conversations
+  }
 
-// export const db = new CachedData();
+
+  // 返回chat_id下已经存储在前端的Message List
+  // 在HomePage中调用然后排序得道最近一条消息作为时间戳
+  async getCachedMessages(conversation: Conversation) {
+    return this.messages
+      .where('chat_id')
+      .equals(conversation.chat_id)
+      .toArray();
+  }
+
+}
+
+export const db = new CachedData();

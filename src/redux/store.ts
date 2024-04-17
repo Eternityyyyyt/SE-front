@@ -1,18 +1,18 @@
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from './auth';
 import friendReducer from './friend';
-
+import activeChatReducer from './activeChat';
 export interface RootState {
     auth: ReturnType<typeof authReducer>;
     friend: ReturnType<typeof friendReducer>;
-    // chat: ReturnType<typeof chatReducer>;
+    activeChat: ReturnType<typeof activeChatReducer>;
 }
 
 const store = configureStore({
     reducer: {
         auth: authReducer,
         friend: friendReducer,
-        // chat: chatReducer,
+        activeChat: activeChatReducer,
     }
 });
 
