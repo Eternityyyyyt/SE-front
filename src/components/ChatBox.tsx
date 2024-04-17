@@ -5,8 +5,8 @@ import styles from './ChatBox.module.css';
 import MessageBubble from './MessageBubble';
 import { Conversation, Message } from '../api/types';
 import { addMessage } from '../api/chat';
-import { getConversationDisplayName ,getConversationDisplayMembers} from '../api/utils';
-// import { db } from '../api/db';
+import { getConversationDisplayName ,getConversationDisplaymemberList} from '../api/utils';
+import { db } from '../api/db';
 import { RootState } from '@/redux/store';
 import { useSelector } from 'react-redux';
 
@@ -39,9 +39,9 @@ const Chatbox: React.FC<ChatboxProps> = ({
       if (!conversation) return [];
       const curMessages = cachedMessagesRef.current;
       // 3 line db related
-      //const newMessages = await db.getCachedMessages(conversation); // 从本地数据库获取当前会话的所有消息
-      //console.log(newMessages);
-      //cachedMessagesRef.current = newMessages;
+      const newMessages = await db.getCachedMessages(conversation); // 从本地数据库获取当前会话的所有消息
+      console.log(newMessages);
+      cachedMessagesRef.current = newMessages;
       // 设置定时器以确保滚动操作在数据更新后执行
       setTimeout(() => {
         messageEndRef.current?.scrollIntoView({
@@ -74,7 +74,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
         <>
           <div className={styles.title}>
             {getConversationDisplayName(conversation)}
-            <div>{getConversationDisplayMembers(conversation,userName)}</div>
+            <div>{getConversationDisplaymemberList(conversation,userName)}</div>
           </div>
           
           <Divider className={styles.divider} />
@@ -84,7 +84,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
       <div className={styles.messages}>
         {/* 消息列表容器 */}
         {messages?.map((item) => (
-          <MessageBubble key={item.message_id} isMe={item.senderNickname == me} timestamp={item.create_time} {...item} /> // 渲染每条消息为MessageBubble组件
+          <MessageBubble key={item.message_id} isMe={item.sender == me} timestamp={item.created_time} {...item} /> // 渲染每条消息为MessageBubble组件
         ))}
         <div ref={messageEndRef} /> {/* 用于自动滚动到消息列表底部的空div */}
       </div>

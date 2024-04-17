@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { setPhoneNumber, setEmail, setNickname, resetAuth } from "@/redux/auth";
-
+import { setActiveChat } from "../redux/activeChat";
 const HomePage = dynamic(() => import('@/components/HomePage'), { ssr: false });
 
 const ChatPage = () => {
@@ -20,6 +20,7 @@ const ChatPage = () => {
     if(token && userName) {
       // MyCenter();
     } else {
+      dispatch(setActiveChat(null))
       router.push('/login');
     }
   }, [token, userName]);
