@@ -1,6 +1,6 @@
+import { headers } from 'next/headers';
 import { Conversation, Message } from './types';
 import axios from 'axios';
-
 
 export type AddMessageArgs = {
     userName: string;
@@ -28,36 +28,9 @@ export async function addMessage({
     return data;            // message_id (data.data.message_id)
 }
 
-export type AddPrivateConversationArgs = {
-    // type: 'private_chat' | 'group_chat';
-    // members: string[];
-    createrName: string;
-    memberName: string;
-}
-// 向服务器添加一个新私聊 Private Chat
-export async function addPrivateConversation({ createrName, memberName }: AddPrivateConversationArgs, token:string) {
-    const { data } = await axios.post("/api/chat/createPrivate", {
-      createrName,
-      memberName,
-    },{
-      headers: {
-          Authorization: `${token}`
-      }
-  });
-    const { chat_id, alreadyCreated } = data.data;
-    let members: string[] = [createrName,memberName];
-    let isGroup:Boolean = false
-    return {
-      chat_id,
-      members,
-      isGroup
-    } as Conversation;
-    //return data.data as Conversation; // 返回一个Conversation类型
-}
-
 export type GetMessagesArgs = {
-    userName: string;
-    chat_id: number;
+    userName?: string;
+    chat_id?: number;
     after?: number; // 可能没有消息，某一时间戳，一般为最后一条消息的时间戳
     limit?: number; // 可以不设置，默认为100
 };
@@ -69,6 +42,8 @@ export async function getMessages({
     limit,
   }: GetMessagesArgs, token:string) {
     const messages: Message[] = [];
+    let info:string = '';
+    try{
       const { data } = await axios.get("/api/chat/message", {
         headers: {
           Authorization: `${token}`
@@ -80,8 +55,70 @@ export async function getMessages({
           limit: limit,         // 每次请求的消息数量限制
         },
       });
+      info = data.info
       data.data.forEach((item: Message) => messages.push(item)); // 将获取到的消息添加到列表中
-      after = messages[messages.length - 1].create_time; // 更新游标为最后一条消息的时间戳，用于下轮查询
+      after = messages[messages.length - 1].created_time; // 更新游标为最后一条消息的时间戳，用于下轮查询
     // 得到chat_id的after后的所有消息，返回一个Message List
+    }
+    catch (error) {
+      console.log(info);
+    }
     return messages;
+}
+
+export type AddConversationArgs = {
+  isGroup :boolean;
+  memberList: string[];
+};
+
+export type GetConversationsArgs = {
+  userName: string;
+  idList: number[];
+};
+
+// 向服务器添加一个新会话 (私聊/群聊)，memberList中的第一个用户为创建的发起者
+export async function addConversation({ isGroup, memberList}: AddConversationArgs,token:string) {
+  if(!isGroup){
+    //if(!(memberList.length === 2)){throw new Error ('memberList not 2');}
+    //TODO:handle possible error
+    const createrName:string = memberList[0];
+    const memberName = memberList[1];
+    const { data } = await axios.post("/api/chat/createPrivate", {
+        createrName,
+        memberName,
+      },{
+        headers: {
+            Authorization: `${token}`
+        }
+    });
+      const { chat_id, alreadyCreated } = data.data;
+      let isGroup:Boolean = false
+      return {
+        chat_id,
+        memberList,
+        isGroup
+      } as Conversation;
+  }
+  else{//add group chat, TODO
+    const chat_id = 0;
+    return {
+      chat_id,
+      memberList,
+      isGroup
+    } as Conversation;
+  }
+}
+
+// 从服务器查询指定会话信息
+export async function getConversations({ userName, idList,}: GetConversationsArgs ,token:string) {
+  const params = new URLSearchParams();
+  idList.forEach((id) => params.append('chat_id', id.toString()));
+  params.append('userName',userName)
+  const { data } = await axios.get('/api/chat/chat', {
+    params,
+    headers: {
+      Authorization: `${token}`
+    }
+  });
+  return data.data as Conversation[];
 }
