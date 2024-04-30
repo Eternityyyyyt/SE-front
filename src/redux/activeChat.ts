@@ -8,7 +8,7 @@ const initialState: activeChatId = {
     chat_id: null,
 };
 
-export const activeChatSlice = createSlice({
+export const activeChatIdSlice = createSlice({
     name: "activeChat",
     initialState,
     reducers: {
@@ -18,5 +18,5 @@ export const activeChatSlice = createSlice({
     }
 });
 
-export const { setActiveChat } = activeChatSlice.actions;
-export default activeChatSlice.reducer;
+export const { setActiveChat } = activeChatIdSlice.actions;
+export default activeChatIdSlice.reducer;

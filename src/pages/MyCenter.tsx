@@ -29,7 +29,7 @@ const MyCenter = () => {
           })
             .then((res) => res.json())
             .then((res) => {
-              if(Number(res.code) === 0) {    // 后续改成code
+              if(Number(res.code) === 0) {
                 alert("删除成功");
                 dispatch(resetAuth());
                 router.push('/');
@@ -58,16 +58,23 @@ const MyCenter = () => {
     const GoBack = () => {
       router.back();
     }
+    const revise = () => {
+      router.push('/revise');
+    }
     return (
         <div>
             <button onClick={GoBack}>返回</button>
+            <button onClick={gotoIndex}>首页</button>
             <h1>My Center-用户中心</h1>
             <h2>用户名：{userName}</h2>
             <h2>昵称：{nickname}</h2>
             <h2>手机号：{phoneNumber}</h2>
             <h2>邮箱：{email} </h2>
+            <div>
+              <button onClick={revise}>用户信息编辑</button>
+            </div>
             <button onClick={deleteUser}>注销用户</button>
-            <button onClick={gotoIndex}>首页</button>
+            
         </div>
     );
 };
