@@ -6,6 +6,7 @@ interface AuthState {
     nickname: string;
     phoneNumber: string;
     email: string;
+    avatar: string;
     // 存储在前端的聊天记录
     chatId: number[];
     messages: Record<number, string[]>;
@@ -17,6 +18,7 @@ const initialState: AuthState = {
     nickname: "",
     phoneNumber: "",
     email: "",
+    avatar: "",
 
     chatId: [],
     messages: {},
@@ -41,11 +43,15 @@ export const authSlice = createSlice({
         setEmail: (state, action: PayloadAction<string>) => {
             state.email = action.payload;
         },
+        setAvatar: (state, action: PayloadAction<string>) => {
+            state.avatar = action.payload;
+        },
         resetAuth: (state) => {
             state.token = "";
             state.name = "";
             state.phoneNumber = "";
             state.email= "";
+            state.avatar = "";
         },
 
         // 增加chat相关的功能
@@ -68,5 +74,5 @@ export const authSlice = createSlice({
     },
 });
 
-export const { setToken, setName, setNickname, setPhoneNumber, setEmail, resetAuth, addChatId, removeChatId, addMessage, resetChat } = authSlice.actions;
+export const { setToken, setName, setNickname, setPhoneNumber, setEmail, setAvatar, resetAuth, addChatId, removeChatId, addMessage, resetChat } = authSlice.actions;
 export default authSlice.reducer;

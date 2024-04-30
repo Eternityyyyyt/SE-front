@@ -2,13 +2,14 @@ import { useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { useRouter } from "next/router";
-
+import styles from './avatar.module.css';
 
 const SearchUser = () => {
     const [userName, setUsername] = useState('');
     const [nickname, setNickname] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [email, setEmail] = useState('');
+    const [avatar, setAvatar] = useState('');
     const router = useRouter();
 
     // 弹窗
@@ -73,6 +74,7 @@ const SearchUser = () => {
                 setNickname(res.userData.nickname);
                 setPhoneNumber(res.userData.phoneNumber);
                 setEmail(res.userData.email);
+                setAvatar(res.userData.avatar);
                 setSendBySearch(true);
             }
             else {
@@ -144,6 +146,9 @@ const SearchUser = () => {
             </div>
             <button onClick={Search}>搜索</button>
             <h2>搜索结果：</h2>
+            <div className={styles.avatar}>
+              {avatar && <img src={`..${avatar}`} alt="Avatar" className={styles.avatar} />}
+            </div>
             <h3>用户名：{userName}</h3>
             <h3>昵称：{nickname}</h3>
             <h3>电话号码：{phoneNumber}</h3>

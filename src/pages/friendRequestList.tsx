@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from "@/redux/store";
 import { useRouter } from 'next/router';
+import styles from './avatar.module.css';
 
 interface FriendRequest {
     request_id: string;
     sender: string;
+    senderAvatar: string;
     receiver: string;
     created_time: string;
     sendBySearch: boolean;
@@ -22,7 +24,6 @@ const FriendRequestList = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                console.log(userName);
                 const response = await fetch(`/api/friendRequest/${userName}`, {
                     method: 'GET',
                     headers: {
@@ -32,6 +33,7 @@ const FriendRequestList = () => {
                 const data = await response.json();
                 if (Number(data.code) === 0) {
                     setFriendRequests(data.data);
+                    console.log(data);
                 } else {
                     switch(Number(data.code)) {
                         case 2:
@@ -137,6 +139,9 @@ const FriendRequestList = () => {
                 <ul>
                     {friendRequests.map((request) => (
                         <li key={request.request_id}>
+                            <div>
+                                {<img src={`..${request.senderAvatar}`} alt="Avatar" className={styles.avatar} />}
+                            </div>
                             <p>Sender: {request.sender}</p>
                             <p>Create Time: {request.created_time}</p>
                             <p>Status: {getStatusText(request.status)}</p>

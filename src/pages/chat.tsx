@@ -4,7 +4,7 @@ import React, { useEffect } from 'react';
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { setPhoneNumber, setEmail, setNickname, resetAuth } from "@/redux/auth";
+import { setPhoneNumber, setEmail, setNickname, setAvatar, resetAuth } from "@/redux/auth";
 import { setActiveChat } from "../redux/activeChat";
 const HomePage = dynamic(() => import('@/components/HomePage'), { ssr: false });
 
@@ -36,10 +36,10 @@ const ChatPage = () => {
       .then((res) => res.json())
       .then((res) => {
         if(Number(res.code) === 0) {
-          console.log(res.code);
           dispatch(setPhoneNumber(res.userData.phoneNumber));
           dispatch(setEmail(res.userData.email));
           dispatch(setNickname(res.userData.nickname));
+          dispatch(setAvatar(res.userData.avatar));
           router.push('/MyCenter');
         }
         else {

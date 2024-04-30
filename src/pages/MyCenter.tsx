@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useDispatch, useSelector } from 'react-redux';
 import { resetAuth } from '@/redux/auth';
 import { RootState } from "@/redux/store";
+import styles from './avatar.module.css';
 
 const MyCenter = () => {
     const router = useRouter();
@@ -13,6 +14,9 @@ const MyCenter = () => {
     const phoneNumber = useSelector((state:RootState) => state.auth.phoneNumber);
     const email = useSelector((state:RootState) => state.auth.email);
     const token = useSelector((state:RootState) => state.auth.token);
+    const avatar = useSelector((state:RootState) => state.auth.avatar);
+    const avatarPath:string = `..${avatar}`;
+    console.log(avatarPath);
 
     useEffect(() => {
         if(!userName || !token) {
@@ -66,6 +70,9 @@ const MyCenter = () => {
             <button onClick={GoBack}>返回</button>
             <button onClick={gotoIndex}>首页</button>
             <h1>My Center-用户中心</h1>
+            <div className={styles.avatar}>
+              {<img src={avatarPath} alt="Avatar" className={styles.avatar} />}
+            </div>
             <h2>用户名：{userName}</h2>
             <h2>昵称：{nickname}</h2>
             <h2>手机号：{phoneNumber}</h2>

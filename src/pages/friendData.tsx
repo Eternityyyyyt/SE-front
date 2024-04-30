@@ -10,12 +10,15 @@ import { Conversation } from "@/api/types";
 import { db } from '../api/db';
 import { useDispatch } from "react-redux";
 import { setActiveChat } from "../redux/activeChat";
+import styles from './avatar.module.css';
+
 const FriendData = () => {
     const router = useRouter();
     const friendNickname = useSelector((state:RootState) => state.friend.friendName);//friend nickname
     const friendName = useSelector((state:RootState) => state.friend.friendName);//friend userName
     const userName = useSelector((state:RootState) => state.auth.name);
     const token = useSelector((state:RootState) => state.auth.token);
+    const avatar = useSelector((state:RootState) => state.friend.friendAvatar);
     //const activeChatId = useSelector((state:RootState) => state.activeChat.chat_id);
     const dispatch = useDispatch();
     // GET 返回的好友信息
@@ -98,6 +101,9 @@ const FriendData = () => {
     return (
         <div>
             <h2>好友信息</h2>
+            <div className={styles.avatar}>
+              {avatar && <img src={`..${avatar}`} alt="Avatar" className={styles.avatar} />}
+            </div>
             <h3>User Name: {fUserName}</h3>
             <h3>Phone Number: {fPhoneNumber}</h3>
             <h3>Email: {fEmail}</h3>
