@@ -1,0 +1,16 @@
+.avatarContainer {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.avatarContainer img {
+    width: 50px;
+    height: 50px;
+    margin: 5px;
+    cursor: pointer;
+}
+
+.selected {
+    border: 2px solid blue; /* 修改选中头像的边框颜色为蓝色 */
+    box-shadow: 0 0 5px 2px rgba(0, 0, 255, 0.5); /* 添加阴影效果 */
+}
