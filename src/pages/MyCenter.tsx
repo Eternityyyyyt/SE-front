@@ -1,4 +1,4 @@
-import React, {useEffect } from 'react';
+import React, {useEffect, useState } from 'react';
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from 'react-redux';
 import { resetAuth } from '@/redux/auth';
@@ -16,13 +16,13 @@ const MyCenter = () => {
     const token = useSelector((state:RootState) => state.auth.token);
     const avatar = useSelector((state:RootState) => state.auth.avatar);
     const avatarPath:string = `..${avatar}`;
-    console.log(avatarPath);
+
 
     useEffect(() => {
         if(!userName || !token) {
             router.push('/login');
         }
-    }, [userName, token, router]);
+    },[nickname, phoneNumber, email, avatar]);
     
     const deleteUser = () => {
         fetch(`/api/user/${userName}`,{
@@ -60,7 +60,7 @@ const MyCenter = () => {
       router.push('/');
     };
     const GoBack = () => {
-      router.back();
+      router.push('/chat');
     }
     const revise = () => {
       router.push('/revise');

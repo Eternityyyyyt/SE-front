@@ -1,11 +1,13 @@
-import React, {useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from "next/router";
-import { useSelector } from 'react-redux';
+import { useSelector, UseDispatch, useDispatch } from 'react-redux';
 import { RootState } from "@/redux/store";
+import { setAvatar, setEmail, setPhoneNumber, setNickname } from '@/redux/auth';
 import styles from './avatar.module.css';
 
 const Revise = () => {
     const router = useRouter();
+    const dispatch = useDispatch();
     const userName = useSelector((state:RootState) => state.auth.name);
     const token = useSelector((state:RootState) => state.auth.token);
 
@@ -19,18 +21,51 @@ const Revise = () => {
 
 
     const goBack = () => {
-        router.back();
+        router.push('/MyCenter');
     };
     const handleAvatarClick = (avatar:any) => {
-        setNewAvatar(avatar);
+        const avatarPath:string = `/avatar/${avatar}.png`
+        setNewAvatar(avatarPath);
+        console.log(newAvatar);
     };
     const submit = () => {
+        if(newAvatar) {dispatch(setAvatar(newAvatar));}
+        if(newPhoneNumber) {dispatch(setPhoneNumber(newPhoneNumber));}
+        if(newEmail) {dispatch(setEmail(newEmail));}
+        if(newName) {dispatch(setNickname(newName));}
+        
         fetch(`/api/revise/${userName}`, {
             method: 'POST',
             headers: {
                 'Authorization': `${token}`
             },
             body: JSON.stringify({newName, newPassword, oldPassword, newPhoneNumber, newEmail, newAvatar})
+        })
+        .then((res) => res.json())
+        .then((res) => {
+            if(Number(res.code === 0)) {
+                alert("Revise Successfully")
+                router.push('/MyCenter');
+            }
+            else {
+                switch(Number(res.code)) {
+                    case 2:
+                        alert('Invalid or expired JWT');
+                        break;
+                    case 1:
+                        alert("Not Found");
+                        break;
+                    case 3:
+                        alert("Cannot revise other's information");
+                        break;
+                    case 4:
+                        alert("Wrong Password");
+                        break;
+                    default:
+                        alert("Something Wrong");
+                        break;
+                }
+            }
         })
     };
 
@@ -47,7 +82,7 @@ const Revise = () => {
                 <input type="text" id="newPassword" value={newPassword} onChange={e => setNewPassword(e.target.value)}></input>
             </div>
             <div>
-                <label htmlFor="oldPassword">oldPassword: </label>
+                <label htmlFor="oldPassword">oldPassword(must): </label>
                 <input type="text" id="oldPassword" value={oldPassword} onChange={e => setOldPassword(e.target.value)}></input>
             </div>
             <div>
