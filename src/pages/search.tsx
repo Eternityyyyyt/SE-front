@@ -6,6 +6,7 @@ import styles from './avatar.module.css';
 
 const SearchUser = () => {
     const [userName, setUsername] = useState('');
+    const [gotUserName, setGotUsername] = useState('');
     const [nickname, setNickname] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [email, setEmail] = useState('');
@@ -71,6 +72,7 @@ const SearchUser = () => {
         .then((res) => res.json())
         .then((res) => {
             if(Number(res.code) === 0) {
+                setGotUsername(userName);
                 setNickname(res.userData.nickname);
                 setPhoneNumber(res.userData.phoneNumber);
                 setEmail(res.userData.email);
@@ -79,6 +81,7 @@ const SearchUser = () => {
             }
             else {
                 setUsername('');
+                setGotUsername('')
                 setNickname('');
                 setPhoneNumber('');
                 setEmail('');
@@ -149,7 +152,7 @@ const SearchUser = () => {
             <div className={styles.avatar}>
               {avatar && <img src={`..${avatar}`} alt="Avatar" className={styles.avatar} />}
             </div>
-            <h3>用户名：{userName}</h3>
+            <h3>用户名：{gotUserName}</h3>
             <h3>昵称：{nickname}</h3>
             <h3>电话号码：{phoneNumber}</h3>
             <h3>邮箱：{email}</h3>
