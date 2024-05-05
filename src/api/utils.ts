@@ -1,13 +1,13 @@
 import { Conversation } from './types';
-
+import { db } from '../api/db';
 
 // 获取会话显示名称的函数
 // 目前只涉及私聊界面
-export function getConversationDisplayName(conversation: Conversation) {
+export function getConversationDisplayName(conversation: Conversation ,me:string) {
     // return conversation.type === 'private_chat'
     //   ? `私聊 #${conversation.id}` // 私聊显示`私聊#ID`
     //   : `群聊 #${conversation.id} (${conversation.memberList.length})`; // 群聊显示`群聊#ID (成员数)`
-    return `私聊 #${conversation.chat_id}`;
+    return `私聊 with ${conversation.memberList.filter((user) => user !== me)[0]}`;
   }
 
 export function getConversationDisplaymemberList(conversation: Conversation , me:string) {//获取显示的聊天成员
@@ -15,4 +15,23 @@ export function getConversationDisplaymemberList(conversation: Conversation , me
     return conversation.memberList.filter(member => member!=me)[0];
   }
   return conversation.memberList.join(',');
+}
+
+export function getPrivateConversationDisplayAvatar(conversation: Conversation , me:string) {//获取聊天应当显示的头像
+  if(conversation.isGroup){
+    const friendName = conversation.memberList.filter((user) => user !== me)[0];
+    console.log(friendName)
+    fetch(`/api/friendList/${me}/${friendName}`, {
+        method: 'GET',
+        // 无需鉴权
+    })
+    .then((res) => res.json())
+    .then((res) => {
+        if(Number(res.code) === 0) {
+          console.log(res.userData.avatar)
+          return `..${res.userData.avatar}`;
+        } 
+    });
+  }
+  return "default";
 }

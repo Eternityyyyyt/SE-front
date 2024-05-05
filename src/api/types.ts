@@ -1,3 +1,13 @@
+export type User = {
+    userName:string;
+    id:number
+    nickname:string;
+    avatar:string;
+    phoneNumber:string;
+    email:string
+}
+
+
 export type Message = {
     message_id: number;     // 消息ID 自增无重复
     chat_id: number;        // 会话 ID 所属会话id
@@ -17,12 +27,11 @@ export type Conversation = {
     unreadCount?: number;
     owner?:string;
     adminList?:string;
-    
+    avatar?:string
 };
   
 // export type ActiveConversation = {
 //     // 以userName作为主键，存储目前活跃/存在的conversation的id
-//     // 感觉不一定需要
 //     userName: string;
 //     chatIds: number[];
 // };

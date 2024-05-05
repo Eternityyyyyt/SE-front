@@ -42,7 +42,7 @@ const RegisterPage = () => {
                         alert('User already exist');
                         break;
                     case -2:
-                        alert('Bad length of [phoneNumber]');
+                        alert(data.info);
                         break;
                     case -3:
                         alert('Bad method');

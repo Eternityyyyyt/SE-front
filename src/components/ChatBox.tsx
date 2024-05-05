@@ -38,7 +38,6 @@ const Chatbox: React.FC<ChatboxProps> = ({
     async () => {
       if (!conversation) return [];
       const curMessages = cachedMessagesRef.current;
-      // 3 line db related
       const newMessages = await db.getCachedMessages(conversation); // 从本地数据库获取当前会话的所有消息
       console.log(newMessages);
       cachedMessagesRef.current = newMessages;
@@ -73,7 +72,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
       {conversation && (
         <>
           <div className={styles.title}>
-            {getConversationDisplayName(conversation)}
+            {getConversationDisplayName(conversation,userName)}
             <div>{getConversationDisplaymemberList(conversation,userName)}</div>
           </div>
           

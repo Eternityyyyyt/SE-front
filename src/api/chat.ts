@@ -120,5 +120,25 @@ export async function getConversations({ userName, idList,}: GetConversationsArg
       Authorization: `${token}`
     }
   });
+  
+  // const conversations = data.data.map((conversation: Conversation) => {
+  //   // 如果isGroup为真，则设置avatar为null，否则使用conversation中的avatar属性
+  //   let avatar = "default"
+  //   if(!conversation.isGroup){
+  //     const friendName = conversation.memberList.filter((user) => user !== userName)[0];
+  //     fetch(`/api/friendList/${userName}/${friendName}`, {
+  //         method: 'GET',
+  //         // 无需鉴权
+  //     })
+  //     .then((res) => res.json())
+  //     .then((res) => {
+  //         if(Number(res.code) === 0) {
+  //           avatar = (res.userData.avatar);
+  //         } 
+  //     });
+  //   }
+      
+  //   return { ...conversation, avatar };
+  // }) as Conversation[];
   return data.data as Conversation[];
 }

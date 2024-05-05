@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useCallback} from 'react';
 import { Message, Conversation } from '../api/types';
 import { db } from '../api/db';
+import styles from './HomePage.module.css';
 import { addConversation } from '../api/chat';
 import { RootState } from '@/redux/store';
 import { useSelector } from 'react-redux';
+import ConversationSelection from './ConversationSelection';
 import Chatbox from './ChatBox';
 import {  useRequest } from 'ahooks';
 import { Divider, message ,Button } from 'antd';
+import { useDispatch } from "react-redux";
+import { setActiveChat } from '@/redux/activeChat';
 
 const HomePage = () => {
     const userName = useSelector((state:RootState) => state.auth.name);
@@ -20,7 +24,7 @@ const HomePage = () => {
       const convs = await db.conversations.toArray();
       return convs.filter((conv) => conv.memberList.includes(userName!));
     }); // 当前用户的会话列表
-    
+    const dispatch = useDispatch();
     const update = useCallback(() => {
       // 更新函数，从后端拉取消息，合并到本地数据库
       db.pullMessages(userName!,token).then(() => {
@@ -36,26 +40,27 @@ const HomePage = () => {
     const activeChat = activeChatId.chat_id ?
      conversations?.find((item) => item.chat_id === activeChatId.chat_id): undefined;
     
-    // // 创建私聊
-    // const createPrivateChat = async() => {
-    //     const newChat = await addConversation({isGroup:false, memberList:[userName,memberName]}, token); // 异步函数需要用await
-    //     const chatId = newChat.chat_id;
-    //     //setChat(newChat);
-    //     //db.addChatId(createrName, chatId);  // 在相应表单中增加
-    //     // console.log(chatId);
-    // }
 
   return (
-    <div>
-        <div>
-            {/* <label>Member Name:</label>
-            <input type="text" value={memberName} onChange={e => setMemberName(e.target.value)} /> */}
-            <label>ActiveChatID: {activeChatId.chat_id}</label>
-        </div>
-        <Button onClick={update}>更新数据</Button>
+    <div className={styles.wrap}>
+      <div className={styles.container}>
+        <div className={styles.settings}> 
 
-        {<Chatbox me={userName} conversation={activeChat} lastUpdateTime={lastUpdateTime} memberName={memberName}/>}
+          <div className={styles.conversations}>
+            <ConversationSelection // 会话选择组件
+              me={userName}
+              conversations={conversations || []}
+              onSelect={(id) => dispatch(setActiveChat(id))}
+            />
+          </div>
+        </div>
+          <Chatbox me={userName} conversation={activeChat} lastUpdateTime={lastUpdateTime} memberName={memberName}/>
+      </div>
+      <Button onClick={update}>更新数据</Button>
     </div>
+    
+
+    
   );
 };
 

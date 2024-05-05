@@ -6,7 +6,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { setPhoneNumber, setEmail, setNickname, setAvatar, resetAuth } from "@/redux/auth";
 import { setActiveChat } from "../redux/activeChat";
+import styles from './chat.module.css';
 const HomePage = dynamic(() => import('@/components/HomePage'), { ssr: false });
+const Buttons = dynamic(() => import('@/components/Buttons'), { ssr: false });
 
 const ChatPage = () => {
   const router = useRouter();
@@ -78,17 +80,16 @@ const ChatPage = () => {
   };
 
   return (
-    <div>
-      <div>
-        <HomePage/>
-      </div>
-      <div>
-        <button onClick={FriendRequestList}>好友申请列表</button>
-        <button onClick={FriendList}>好友列表</button>
-        <button onClick={MyCenter}>个人用户中心</button>
-        <button onClick={SearchUser}>搜索用户</button>
-        <button onClick={gotoIndex}>退出登录</button>
-      </div>
+    <div className={styles.homepage}>
+      <HomePage />
+      <Buttons />
+      {/* <div className={styles.buttons}>
+        <Button onClick={FriendRequestList}>好友申请列表</Button>
+        <Button onClick={FriendList}>好友列表</Button>
+        <Button onClick={MyCenter}>个人用户中心</Button>
+        <Button onClick={SearchUser}>搜索用户</Button>
+        <Button onClick={gotoIndex}>退出登录</Button>
+      </div> */}
       
   </div>
   );
