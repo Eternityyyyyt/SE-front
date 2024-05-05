@@ -17,21 +17,38 @@ export function getConversationDisplaymemberList(conversation: Conversation , me
   return conversation.memberList.join(',');
 }
 
-export function getPrivateConversationDisplayAvatar(conversation: Conversation , me:string) {//获取聊天应当显示的头像
-  if(conversation.isGroup){
+export async function getPrivateConversationDisplayAvatar(conversation: Conversation , me:string) {//获取聊天应当显示的头像
+  let result = "default"
+  if(!conversation.isGroup){
     const friendName = conversation.memberList.filter((user) => user !== me)[0];
-    console.log(friendName)
-    fetch(`/api/friendList/${me}/${friendName}`, {
+    try {
+      const response = await fetch(`/api/friendList/${me}/${friendName}`, {
         method: 'GET',
-        // 无需鉴权
-    })
-    .then((res) => res.json())
-    .then((res) => {
-        if(Number(res.code) === 0) {
-          console.log(res.userData.avatar)
-          return `..${res.userData.avatar}`;
-        } 
-    });
+      });
+      const res = await response.json();
+      if (Number(res.code) === 0) {
+        result = res.userData.avatar;
+      }
+    } catch (error) {
+      console.error("Error fetching avatar:", error);
+    }
   }
-  return "default";
+  return result;
+}
+export async function getUserAvatar(targetUserName:string , me:string) {//获取聊天应当显示的头像
+  let result = ""
+  if(me === targetUserName){return "/avatar/01.png"}
+  try {
+    const response = await fetch(`/api/friendList/${me}/${targetUserName}`, {
+      method: 'GET',
+    });
+    const res = await response.json();
+    if (Number(res.code) === 0) {
+      result = res.userData.avatar;
+    }
+  } catch (error) {
+    console.error("Error fetching avatar:", error);
+  }
+  
+  return "/avatar/01.png";
 }

@@ -4,6 +4,13 @@
     margin-bottom: 20px;
   }
   
+.bubbleandtext{
+  display: flex;
+    flex-direction: column;
+    width: 90%;
+    margin-right: 5px;
+    margin-left: 5px;
+}
   .sender {
     font-size: 0.8rem;
     color: #adadad;

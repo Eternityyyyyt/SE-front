@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { List, Avatar, Badge } from 'antd';
 import { MessageOutlined, TeamOutlined } from '@ant-design/icons';
 import styles from './ConversationSelection.module.css';
@@ -17,6 +17,23 @@ const ConversationSelection: React.FC<ConversationSelectionProps> = ({
   conversations,
   onSelect,
 }) => {
+  const [avatars, setAvatars] = useState<Record<number, string>>({});
+
+  useEffect(() => {
+    const fetchAvatars = async () => {
+      const newAvatars:Record<number, string>= {};
+      for (const conversation of conversations) {
+        if (!conversation.isGroup) {
+          // 假设getPrivateConversationDisplayAvatar返回一个Promise
+          newAvatars[conversation.chat_id] = await getPrivateConversationDisplayAvatar(conversation, me);
+        }
+      }
+      setAvatars(newAvatars);
+    };
+
+    fetchAvatars();
+  }, [conversations, me]);
+
   return (
     <List
       itemLayout="horizontal"
@@ -42,7 +59,7 @@ const ConversationSelection: React.FC<ConversationSelectionProps> = ({
               </Badge> :
               <Badge count={item.unreadCount || 0}>
               <Avatar
-                src={getPrivateConversationDisplayAvatar(item,me)}
+                src={avatars[item.chat_id]}
               />
             </Badge>
             }

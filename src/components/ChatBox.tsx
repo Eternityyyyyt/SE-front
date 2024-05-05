@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState ,useEffect} from 'react';
 import { Input, Button, Divider, message } from 'antd';
 import { useRequest } from 'ahooks';
 import styles from './ChatBox.module.css';
@@ -9,7 +9,7 @@ import { getConversationDisplayName ,getConversationDisplaymemberList} from '../
 import { db } from '../api/db';
 import { RootState } from '@/redux/store';
 import { useSelector } from 'react-redux';
-
+import {getUserAvatar} from  '../api/utils'
 export type ChatboxProps = {
   me: string; // 当前用户
   conversation?: Conversation; // 当前选中的会话 (可能为空)
@@ -32,6 +32,21 @@ const Chatbox: React.FC<ChatboxProps> = ({
   const userName = useSelector((state:RootState) => state.auth.name);
   const chat_id = conversation?.chat_id;
   const replying = 0; // 先不引用
+  const [avatars, setAvatars] = useState<Record<string, string>>({});
+  useEffect(() => {
+    const fetchAvatars = async () => {
+      const newAvatars:Record<string, string>= {};
+      if(conversation){
+        for (const member of conversation.memberList) {
+            newAvatars[member] = await getUserAvatar(member, me);
+          
+        }
+      }
+      setAvatars(newAvatars);
+    };
+
+    fetchAvatars();
+  }, [conversation, me]);
 
   // 使用ahooks的useRequest钩子从IndexedDB异步获取消息数据，依赖项为lastUpdateTime
   const { data: messages } = useRequest(
@@ -39,7 +54,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
       if (!conversation) return [];
       const curMessages = cachedMessagesRef.current;
       const newMessages = await db.getCachedMessages(conversation); // 从本地数据库获取当前会话的所有消息
-      console.log(newMessages);
+      //console.log(newMessages);
       cachedMessagesRef.current = newMessages;
       // 设置定时器以确保滚动操作在数据更新后执行
       setTimeout(() => {
@@ -83,7 +98,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
       <div className={styles.messages}>
         {/* 消息列表容器 */}
         {messages?.map((item) => (
-          <MessageBubble key={item.message_id} isMe={item.sender == me} timestamp={item.created_time} {...item} /> // 渲染每条消息为MessageBubble组件
+          <MessageBubble key={item.message_id} isMe={item.sender == me} timestamp={item.created_time} avatarPath={`..${avatars[item.sender]}`} {...item} /> // 渲染每条消息为MessageBubble组件
         ))}
         <div ref={messageEndRef} /> {/* 用于自动滚动到消息列表底部的空div */}
       </div>
