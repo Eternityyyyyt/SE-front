@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback} from 'react';
 import { Message, Conversation } from '../api/types';
 import { db } from '../api/db';
 import styles from './HomePage.module.css';
-import { addConversation } from '../api/chat';
+import { addConversation,useMessageListener, } from '../api/chat';
 import { RootState } from '@/redux/store';
 import { useSelector } from 'react-redux';
 import ConversationSelection from './ConversationSelection';
@@ -36,10 +36,15 @@ const HomePage = () => {
 
     useEffect(() => {
       update();
+      const intervalId = setInterval(update, 3000);
+
+    // 组件卸载时清除定时器
+      return () => clearInterval(intervalId);
     }, [update]);
     const activeChat = activeChatId.chat_id ?
      conversations?.find((item) => item.chat_id === activeChatId.chat_id): undefined;
     
+    //useMessageListener(update, userName!); // 使用消息监听器钩子，当有新消息时调用更新函数
 
   return (
     <div className={styles.wrap}>
@@ -56,7 +61,7 @@ const HomePage = () => {
         </div>
           <Chatbox me={userName} conversation={activeChat} lastUpdateTime={lastUpdateTime} memberName={memberName}/>
       </div>
-      <Button onClick={update}>更新数据</Button>
+      {/* <Button onClick={update}>更新数据</Button> */}
     </div>
     
 

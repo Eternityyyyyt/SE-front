@@ -1,7 +1,7 @@
 import { headers } from 'next/headers';
 import { Conversation, Message } from './types';
 import axios from 'axios';
-
+import { useEffect } from 'react';
 export type AddMessageArgs = {
     userName: string;
     chat_id: number;
@@ -142,3 +142,41 @@ export async function getConversations({ userName, idList,}: GetConversationsArg
   // }) as Conversation[];
   return data.data as Conversation[];
 }
+export const useMessageListener = (fn: () => void, me: string) => {
+  useEffect(() => {
+    let ws: WebSocket | null = null;
+
+    const connect = () => {
+      ws = new WebSocket(
+        (`/apiws/?username=${me}`) // 将http协议替换为ws协议，用于WebSocket连接
+      );
+
+      ws.onopen = () => {
+        console.log('WebSocket Connected');
+      };
+
+      ws.onmessage = async (event) => {
+        if (event.data) {
+          const data = JSON.parse(event.data);
+          if (data.type == 'notify') fn(); // 当接收到通知类型的消息时，执行回调函数
+        }
+      };
+
+      ws.onclose = () => {
+        console.log('WebSocket Disconnected');
+        console.log('Attempting to reconnect...');
+        setTimeout(() => {
+          connect(); // 当WebSocket连接关闭时，尝试重新连接
+        }, 1000);
+      };
+    };
+
+    connect();
+
+    return () => {
+      if (ws) {
+        ws.close(); // 组件卸载时关闭WebSocket连接
+      }
+    };
+  }, [me, fn]); // 当前用户(me)或回调函数(fn)变化时，重新执行Effect
+};

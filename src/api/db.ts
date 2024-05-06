@@ -65,7 +65,6 @@ export class CachedData extends Dexie {
       .equals(conversation.chat_id)
       .toArray();
   }
-
 }
 
 export const db = new CachedData();

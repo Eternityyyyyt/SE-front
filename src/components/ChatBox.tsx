@@ -39,14 +39,12 @@ const Chatbox: React.FC<ChatboxProps> = ({
       if(conversation){
         for (const member of conversation.memberList) {
             newAvatars[member] = await getUserAvatar(member, me);
-          
         }
       }
       setAvatars(newAvatars);
     };
-
     fetchAvatars();
-  }, [conversation, me]);
+  }, [conversation?.chat_id]);
 
   // 使用ahooks的useRequest钩子从IndexedDB异步获取消息数据，依赖项为lastUpdateTime
   const { data: messages } = useRequest(
@@ -88,7 +86,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
         <>
           <div className={styles.title}>
             {getConversationDisplayName(conversation,userName)}
-            <div>{getConversationDisplaymemberList(conversation,userName)}</div>
+        {/* <div>{getConversationDisplaymemberList(conversation,userName)}</div> */}
           </div>
           
           <Divider className={styles.divider} />
