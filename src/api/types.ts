@@ -29,9 +29,3 @@ export type Conversation = {
     adminList?:string;
     avatar?:string
 };
-  
-// export type ActiveConversation = {
-//     // 以userName作为主键，存储目前活跃/存在的conversation的id
-//     userName: string;
-//     chatIds: number[];
-// };

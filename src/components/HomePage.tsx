@@ -40,9 +40,18 @@ const HomePage = () => {
 
     // 组件卸载时清除定时器
       return () => clearInterval(intervalId);
-    }, [update]);
+    }, []);
     const activeChat = activeChatId.chat_id ?
      conversations?.find((item) => item.chat_id === activeChatId.chat_id): undefined;
+
+     
+    useEffect(() => {
+      db.activeConversationId = activeChatId.chat_id;
+      if(activeChat){
+        db.clearUnreadCount(activeChat).then(refresh);
+      }
+
+    },[activeChat, refresh])
     
     //useMessageListener(update, userName!); // 使用消息监听器钩子，当有新消息时调用更新函数
 

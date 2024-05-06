@@ -70,7 +70,7 @@ const ConversationSelection: React.FC<ConversationSelectionProps> = ({
       setLatestMessagesTime(newLatestMessageTime);
     };
     getLatestMessages()
-  }, [activeChatID,conversations]);
+  }, [activeChatID]);
   const selectchat = (chat_id:number) => {
     setActiveChatID(chat_id)
     onSelect(chat_id)

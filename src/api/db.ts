@@ -1,4 +1,4 @@
-import Dexie from 'dexie';
+import Dexie, { UpdateSpec } from 'dexie';
 import { Conversation, Message } from './types';
 import { getConversations,getMessages } from './chat';           // 获取消息列表，返回一个Message类型的List；参数提供？
 
@@ -53,7 +53,32 @@ export class CachedData extends Dexie {
   }
   // 根据新消息批量更新会话的未读计数
   async updateUnreadCounts(messages: Message[]) {
-    // Implement this function to update unread counts for conversations
+    const conversationIds = messages.map((message) => message.chat_id);
+    const uniqueConvIds = Array.from(new Set(conversationIds));
+
+    // 批量获取会话
+    const conversations = await this.conversations.bulkGet(uniqueConvIds);
+    const updates: {key: number; changes: UpdateSpec<Conversation>}[] = [];
+
+    conversations.forEach((conversation) => {
+      if(conversation){
+        const unreadCount = conversation.unreadCount || 0;
+        const newUnreadCount = unreadCount + messages.filter((message) => message.chat_id === conversation.chat_id).length;
+        if(conversation.chat_id !== this.activeConversationId){
+          updates.push({
+            key: conversation.chat_id,
+            changes: { unreadCount: newUnreadCount },
+          });
+        }
+      }
+      
+    });
+    await this.conversations.bulkUpdate(updates);
+  }
+
+  // 清除会话的未读计数
+  async clearUnreadCount(conversation: Conversation) {
+    await this.conversations.update(conversation.chat_id, { unreadCount: 0 });
   }
 
 
