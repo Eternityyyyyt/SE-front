@@ -37,9 +37,9 @@ export async function getPrivateConversationDisplayAvatar(conversation: Conversa
 }
 export async function getUserAvatar(targetUserName:string , me:string) {//获取聊天应当显示的头像
   let result = ""
-  if(me === targetUserName){return "/avatar/01.png"}
+  //if(me === targetUserName){return "/avatar/01.png"}
   try {
-    const response = await fetch(`/api/friendList/${me}/${targetUserName}`, {
+    const response = await fetch(`/api/searchUser/${targetUserName}`, {
       method: 'GET',
     });
     const res = await response.json();
@@ -50,5 +50,5 @@ export async function getUserAvatar(targetUserName:string , me:string) {//获取
     console.error("Error fetching avatar:", error);
   }
   
-  return "/avatar/01.png";
+  return result;
 }

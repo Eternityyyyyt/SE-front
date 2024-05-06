@@ -35,8 +35,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     <div className={`${styles.container} ${isMe ? styles.me : styles.others}`}>
       {/* 根据消息发送者显示不同的气泡样式 */}
       <div>
-      <Avatar src={
-        isMe? my_avatarPath : avatarPath }></Avatar>
+      <Avatar src={ avatarPath }></Avatar>
       </div>
       
         <div className={styles.sender}>
