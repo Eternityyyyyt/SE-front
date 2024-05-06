@@ -29,31 +29,27 @@ const ConversationSelection: React.FC<ConversationSelectionProps> = ({
   function formattime(timestamp:number) {
     const seconds = Math.floor(timestamp);
     // 格式化时间戳为易读的时间格式
-    //console.log(timestamp)
+    if(timestamp == 0){return ''}
+
     const formattedTime = new Date(seconds * 1000).toLocaleTimeString('zh-CN', {
       hour: '2-digit',
       minute: '2-digit',
     });
-    return formattedTime
+    return `(${formattedTime})`
   }
   const [avatars, setAvatars] = useState<Record<number, string>>({});
+  
   const [latestMessages, setLatestMessages] = useState<Record<number, string>>({});
   const [latestMessagesTime, setLatestMessagesTime] = useState<Record<number, number>>({});
   const [activeChatID, setActiveChatID] = useState(1)
-  useEffect(() => {
-    const fetchAvatars = async () => {
-      const newAvatars:Record<number, string>= {};
-      for (const conversation of conversations) {
-        if (!conversation.isGroup) {
-          // 假设getPrivateConversationDisplayAvatar返回一个Promise
-          newAvatars[conversation.chat_id] = await getPrivateConversationDisplayAvatar(conversation, me);
-        }
-      }
-      setAvatars(newAvatars);
-    };
-
-    fetchAvatars();
+  // useEffect(()=>{
+  //   conversations = conversations.sort((a,b) => latestMessagesTime[b.chat_id] - latestMessagesTime[a.chat_id])
+  // }
+  //)
+  
+  useEffect(()=>{
     const getLatestMessages= async () => {
+      
       const newLatestMessage:Record<number, string>= {};
       const newLatestMessageTime:Record<number, number>= {};
       for (const conversation of conversations) {
@@ -61,8 +57,14 @@ const ConversationSelection: React.FC<ConversationSelectionProps> = ({
           await db.getCachedMessages(conversation)
           .then((messages) => {
             const latestmessage = messages.sort((a, b) => b.created_time - a.created_time)[0]
-            newLatestMessage[conversation.chat_id] = truncateString(latestmessage.content)
-            newLatestMessageTime[conversation.chat_id] = latestmessage.created_time
+            if( latestmessage){
+              newLatestMessage[conversation.chat_id] = truncateString(latestmessage.content)
+              newLatestMessageTime[conversation.chat_id] = latestmessage.created_time
+            }
+            else{
+              newLatestMessage[conversation.chat_id] = ''
+              newLatestMessageTime[conversation.chat_id] = 0
+            }
           })
         }
       }
@@ -70,16 +72,36 @@ const ConversationSelection: React.FC<ConversationSelectionProps> = ({
       setLatestMessagesTime(newLatestMessageTime);
     };
     getLatestMessages()
-  }, [activeChatID]);
+  }
+  )
+  useEffect(() => {
+    //console.log('triggerd useeffect')
+    const fetchAvatars = async () => {
+      const newAvatars:Record<number, string>= {};
+      //console.log(conversations)
+      //conversations = conversations.sort((a,b) => latestMessagesTime[b.chat_id] - latestMessagesTime[a.chat_id])
+      for (const conversation of conversations) {
+        console.log(conversation)
+        if (!conversation.isGroup) {
+          // 假设getPrivateConversationDisplayAvatar返回一个Promise
+          //console.log(conversation.chat_id)
+          newAvatars[conversation.chat_id] = await getPrivateConversationDisplayAvatar(conversation, me);
+        }
+      }
+      console.log(newAvatars)
+      setAvatars(newAvatars);
+    };
+    fetchAvatars();
+  }, [activeChatID,conversations.length]);
   const selectchat = (chat_id:number) => {
     setActiveChatID(chat_id)
     onSelect(chat_id)
   }
-  conversations = conversations.sort((a,b) => latestMessagesTime[b.chat_id] - latestMessagesTime[a.chat_id])
+  //conversations.sort((a,b) => latestMessagesTime[b.chat_id] - latestMessagesTime[a.chat_id])s
   return (
     <List
       itemLayout="horizontal"
-      dataSource={conversations} // 数据源为当前用户的会话列表
+      dataSource={conversations.slice(0).sort((a,b) => latestMessagesTime[b.chat_id] - latestMessagesTime[a.chat_id])} // 数据源为当前用户的会话列表
       renderItem={(item) => (
         <List.Item
           onClick={() => selectchat(item.chat_id)} // 点击会话项时触发onSelect回调
@@ -119,7 +141,7 @@ const ConversationSelection: React.FC<ConversationSelectionProps> = ({
               //     {/* 群聊时显示所有成员用户名，以逗号分隔 */}
               //   </div>
               // )
-              `${latestMessages[item.chat_id]}     (${formattime(latestMessagesTime[item.chat_id])})`
+              `${latestMessages[item.chat_id]}      ${formattime(latestMessagesTime[item.chat_id])}`
             }
           />
         </List.Item>

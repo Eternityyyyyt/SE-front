@@ -27,7 +27,7 @@ export async function getPrivateConversationDisplayAvatar(conversation: Conversa
   if(!conversation.isGroup){
     const friendName = conversation.memberList.filter((user) => user !== me)[0];
     try {
-      const response = await fetch(`/api/friendList/${me}/${friendName}`, {
+      const response = await fetch(`/api/searchUser/${friendName}`, {
         method: 'GET',
       });
       const res = await response.json();
