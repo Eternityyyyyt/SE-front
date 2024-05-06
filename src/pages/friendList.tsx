@@ -4,7 +4,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from "@/redux/store";
 import { useRouter } from 'next/router';
 import styles from './avatar.module.css';
-
+import { setActiveChat } from "../redux/activeChat";
+import { addConversation, } from '../api/chat';
+import { db } from '../api/db';
 import { setFriendName,setFriendNickname, setFriendAvatar } from '@/redux/friend';
 
 interface FriendDataList {
@@ -59,6 +61,15 @@ const FriendList = () => {
         dispatch(setFriendAvatar(avatar));
         router.push(`/friendData/`);
     };
+
+    const GoToChat = async(friendName:string) => {
+        const newChat = await addConversation({isGroup:false, memberList:[userName,friendName]}, token);; // 异步函数需要用await
+        const chatId = newChat.chat_id;
+        console.log(chatId);
+        await db.pullConversations(userName,[chatId],token);
+        dispatch(setActiveChat(chatId));
+        router.push('/chat');
+    };
     return (
         <div>
             <button onClick={GoBack}>返回</button>
@@ -74,6 +85,7 @@ const FriendList = () => {
 
                             <p>UserName: {request.userName}</p>
                             <p>Nickname: {request.nickname}</p>
+                            <button onClick={() => GoToChat(request.userName)}>聊天</button>
                             <button onClick={() => GetFriendData(request.userName , request.nickname, request.avatar)}>查看详细信息</button>
                         </li>
                         
