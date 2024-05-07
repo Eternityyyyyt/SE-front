@@ -24,7 +24,7 @@ const SearchUser = () => {
     const token = useSelector((state:RootState) => state.auth.token);
     // 点击发送发送申请按钮
     const handleFriendRequest = () => {
-        fetch(`/api/sendFriendRequest/${userName}`, {
+        fetch(`/api/sendFriendRequest/${gotUserName}`, {
             method: 'POST',
             headers: {
                 'Authorization': `${token}` // 发送本地token到后端
