@@ -40,7 +40,7 @@ const HomePage = () => {
 
     // 组件卸载时清除定时器
       return () => clearInterval(intervalId);
-    }, []);
+    }, [update]);
     const activeChat = activeChatId.chat_id ?
      conversations?.find((item) => item.chat_id === activeChatId.chat_id): undefined;
 

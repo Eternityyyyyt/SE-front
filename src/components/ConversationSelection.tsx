@@ -68,27 +68,28 @@ const ConversationSelection: React.FC<ConversationSelectionProps> = ({
   
   useEffect(()=>{
     const getLatestMessages= async () => {
-      
-      const newLatestMessage:Record<number, string>= {};
-      const newLatestMessageTime:Record<number, number>= {};
-      for (const conversation of conversations) {
-        if (!conversation.isGroup) {
-          await db.getCachedMessages(conversation)
-          .then((messages) => {
-            const latestmessage = messages.sort((a, b) => b.created_time - a.created_time)[0]
-            if( latestmessage){
-              newLatestMessage[conversation.chat_id] = truncateString(latestmessage.content)
-              newLatestMessageTime[conversation.chat_id] = latestmessage.created_time
-            }
-            else{
-              newLatestMessage[conversation.chat_id] = ''
-              newLatestMessageTime[conversation.chat_id] = 0
-            }
-          })
+      if(conversations.length > 0){
+        const newLatestMessage:Record<number, string>= {};
+        const newLatestMessageTime:Record<number, number>= {};
+        for (const conversation of conversations) {
+          if (!conversation.isGroup) {
+            await db.getCachedMessages(conversation)
+            .then((messages) => {
+              const latestmessage = messages.sort((a, b) => b.created_time - a.created_time)[0]
+              if( latestmessage){
+                newLatestMessage[conversation.chat_id] = truncateString(latestmessage.content)
+                newLatestMessageTime[conversation.chat_id] = latestmessage.created_time
+              }
+              else{
+                newLatestMessage[conversation.chat_id] = ''
+                newLatestMessageTime[conversation.chat_id] = 0
+              }
+            })
+          }
         }
-      }
-      setLatestMessages(newLatestMessage);
-      setLatestMessagesTime(newLatestMessageTime);
+        setLatestMessages(newLatestMessage);
+        setLatestMessagesTime(newLatestMessageTime);
+     }
     };
     getLatestMessages()
   }
@@ -107,10 +108,10 @@ const ConversationSelection: React.FC<ConversationSelectionProps> = ({
           newAvatars[conversation.chat_id] = await getPrivateConversationDisplayAvatar(conversation, me);
         }
       }
-      console.log(newAvatars)
+      //console.log(newAvatars)
       setAvatars(newAvatars);
     };
-    fetchAvatars();
+    fetchAvatars()
   }, [activeChatID,conversations.length]);
   const selectchat = (chat_id:number) => {
     setActiveChatID(chat_id)
