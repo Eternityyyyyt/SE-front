@@ -172,7 +172,7 @@ export const useMessageListener = (fn: () => void, me: string) => {
       };
     };
 
-    connect();
+    if(me)connect();
 
     return () => {
       if (ws) {
