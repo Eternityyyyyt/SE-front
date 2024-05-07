@@ -44,14 +44,14 @@ const ConversationSelection: React.FC<ConversationSelectionProps> = ({
       hour: '2-digit',
       minute: '2-digit',
     });
-    return `(${formattedTime})`
+    return `（${formattedTime}）`
     } else if (date.toDateString() === yesterday.toDateString()) {
-      return "昨天";
+      return "（昨天）";
     } else if (date.toDateString() === dayBeforeYesterday.toDateString()) {
-      return "前天";
+      return "（前天）";
     } else {
       // 否则显示具体日期（只需要月份和年份）
-      return `${date.getMonth() + 1}月${date.getDate()}日`;
+      return `（${date.getMonth() + 1}月${date.getDate()}日）`;
     }
   }
     
