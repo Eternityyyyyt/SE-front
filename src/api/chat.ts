@@ -149,7 +149,7 @@ export const useMessageListener = (fn: () => void, me: string) => {
 
     const connect = () => {
       ws = new WebSocket(
-        (`/apiws/?username=${me}`) // 将http协议替换为ws协议，用于WebSocket连接
+        getUrl(`ws/?username=${me}`).replace('http://', 'ws://') // 将http协议替换为ws协议，用于WebSocket连接
       );
 
       ws.onopen = () => {

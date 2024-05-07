@@ -34,13 +34,13 @@ const HomePage = () => {
     }, [userName, refresh]);
 
 
-    useEffect(() => {
-      update();
-      const intervalId = setInterval(update, 3000);
+    // useEffect(() => {
+    //   update();
+    //   const intervalId = setInterval(update, 3000);
 
-    // 组件卸载时清除定时器
-      return () => clearInterval(intervalId);
-    }, [update]);
+    // // 组件卸载时清除定时器
+    //   return () => clearInterval(intervalId);
+    // }, [update]);
     const activeChat = activeChatId.chat_id ?
      conversations?.find((item) => item.chat_id === activeChatId.chat_id): undefined;
 
@@ -53,7 +53,7 @@ const HomePage = () => {
 
     },[activeChatId, refresh])
     
-    //useMessageListener(update, userName!); // 使用消息监听器钩子，当有新消息时调用更新函数
+    useMessageListener(update, userName!); // 使用消息监听器钩子，当有新消息时调用更新函数
 
   return (
     <div className={styles.wrap}>
