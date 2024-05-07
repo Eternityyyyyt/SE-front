@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import styles from './avatar.module.css';
-
+import { getUrl } from '../api/utils';
 const RegisterPage = () => {
     const [userName, setUsername] = useState('');
     const [nickname, setNickname] = useState('');
@@ -23,7 +23,7 @@ const RegisterPage = () => {
 
         try {
             console.log(selectedAvatar);
-            const response = await fetch('/api/register', {
+            const response = await fetch(getUrl('/api/register'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

@@ -11,7 +11,7 @@ import { db } from '../api/db';
 import { useDispatch } from "react-redux";
 import { setActiveChat } from "../redux/activeChat";
 import styles from './avatar.module.css';
-
+import { getUrl } from '../api/utils';
 const FriendData = () => {
     const router = useRouter();
     const friendNickname = useSelector((state:RootState) => state.friend.friendName);//friend nickname
@@ -30,7 +30,7 @@ const FriendData = () => {
     useEffect(() => {
         const fetchData = async() => {
             try {
-                fetch(`/api/friendList/${userName}/${friendName}`, {
+                fetch(getUrl(`/api/friendList/${userName}/${friendName}`), {
                     method: 'GET',
                     // 无需鉴权
                 })
@@ -71,7 +71,7 @@ const FriendData = () => {
     };
     const GoBack = () => {router.back();};
     const DeleteFriend = () => {
-        fetch(`/api/friendList/${userName}/${friendName}`, {
+        fetch(getUrl(`/api/friendList/${userName}/${friendName}`), {
             method: 'DELETE',
             headers: {
                 'Authorization': `${token}`,

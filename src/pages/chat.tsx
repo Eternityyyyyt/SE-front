@@ -7,6 +7,7 @@ import { RootState } from "@/redux/store";
 import { setPhoneNumber, setEmail, setNickname, setAvatar, resetAuth } from "@/redux/auth";
 import { setActiveChat } from "../redux/activeChat";
 import styles from './chat.module.css';
+import { getUrl } from '../api/utils';
 const HomePage = dynamic(() => import('@/components/HomePage'), { ssr: false });
 const Buttons = dynamic(() => import('@/components/Buttons'), { ssr: false });
 
@@ -29,7 +30,7 @@ const ChatPage = () => {
 
 
   const MyCenter = () => {
-    fetch(`/api/user/${userName}`,{
+    fetch(getUrl(getUrl(`/api/user/${userName}`)),{
       method: 'GET',
       headers: {
         'Authorization': `${token}` // 发送本地token到后端

@@ -1,6 +1,6 @@
 import { Conversation } from './types';
 import { db } from '../api/db';
-
+import { API_BASE_URL } from './constants';
 // 获取会话显示名称的函数
 // 目前只涉及私聊界面
 export function getConversationDisplayName(conversation: Conversation ,me:string) {
@@ -22,12 +22,17 @@ export function getConversationDisplaymemberList(conversation: Conversation , me
   return conversation.memberList.join(',');
 }
 
+export function getUrl(apiName: string) {
+  //console.log(`/${apiName.replace('/api','')}`)
+  return `${API_BASE_URL.replace(/\/+$/, '')}/${apiName.replace('/api/','')}`; // 去除基础URL末尾的斜线，防止形成双斜线
+}
+
 export async function getPrivateConversationDisplayAvatar(conversation: Conversation , me:string) {//获取聊天应当显示的头像
   let result = "default"
   if(!conversation.isGroup){
     const friendName = conversation.memberList.filter((user) => user !== me)[0];
     try {
-      const response = await fetch(`/api/searchUser/${friendName}`, {
+      const response = await fetch(getUrl(`/api/searchUser/${friendName}`), {
         method: 'GET',
       });
       const res = await response.json();
@@ -44,7 +49,7 @@ export async function getUserAvatar(targetUserName:string , me:string) {//获取
   let result = ""
   //if(me === targetUserName){return "/avatar/01.png"}
   try {
-    const response = await fetch(`/api/searchUser/${targetUserName}`, {
+    const response = await fetch(getUrl(`/api/searchUser/${targetUserName}`), {
       method: 'GET',
     });
     const res = await response.json();

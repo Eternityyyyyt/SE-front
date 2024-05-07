@@ -8,7 +8,7 @@ import { setActiveChat } from "../redux/activeChat";
 import { addConversation, } from '../api/chat';
 import { db } from '../api/db';
 import { setFriendName,setFriendNickname, setFriendAvatar } from '@/redux/friend';
-
+import { getUrl } from '../api/utils';
 interface FriendDataList {
     userName: string;
     nickname: string;
@@ -25,7 +25,7 @@ const FriendList = () => {
     useEffect(() => {
         const fetchData = async() => {
             try {
-                const response = await fetch(`/api/friendList/${userName}`, {
+                const response = await fetch(getUrl(`/api/friendList/${userName}`), {
                     method: 'GET',
                     headers: {
                         'Authorization': `${token}`

@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from "@/redux/store";
 import { useRouter } from 'next/router';
 import styles from './avatar.module.css';
-
+import { getUrl } from '../api/utils';
 interface FriendRequest {
     request_id: string;
     sender: string;
@@ -24,7 +24,7 @@ const FriendRequestList = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await fetch(`/api/friendRequest/${userName}`, {
+                const response = await fetch(getUrl(`/api/friendRequest/${userName}`), {
                     method: 'GET',
                     headers: {
                         'Authorization': `${token}` // 发送本地token到后端
@@ -60,7 +60,7 @@ const FriendRequestList = () => {
 
     const Accept = async (requestId: string) => {
         try {
-            const response = await fetch(`/api/friendRequest/${userName}`, {
+            const response = await fetch(getUrl(`/api/friendRequest/${userName}`), {
                 method: 'POST',
                 headers: {
                     'Authorization': `${token}`,
@@ -94,7 +94,7 @@ const FriendRequestList = () => {
     
     const Deny = async (requestId: string) => {
         try {
-            const response = await fetch(`/api/friendRequest/${userName}`, {
+            const response = await fetch(getUrl(`/api/friendRequest/${userName}`), {
                 method: 'POST',
                 headers: {
                     'Authorization': `${token}`,

@@ -6,7 +6,7 @@ import { RootState } from "@/redux/store";
 import { setPhoneNumber, setEmail, setNickname, setAvatar, resetAuth } from "@/redux/auth";
 import styles from './Buttons.module.css';
 import { Divider, message ,Button } from 'antd';
-
+import { getUrl } from '../api/utils';
 
 const Buttons = () => {
     const router = useRouter();
@@ -15,7 +15,7 @@ const Buttons = () => {
     const userName = useSelector((state:RootState) => state.auth.name);
   
     const MyCenter = () => {
-        fetch(`/api/user/${userName}`,{
+        fetch(getUrl(`/api/user/${userName}`),{
           method: 'GET',
           headers: {
             'Authorization': `${token}` // 发送本地token到后端

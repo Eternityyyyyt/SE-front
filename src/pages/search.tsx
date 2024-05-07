@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { useRouter } from "next/router";
 import styles from './avatar.module.css';
-
+import { getUrl } from '../api/utils';
 const SearchUser = () => {
     const [userName, setUsername] = useState('');
     const [gotUserName, setGotUsername] = useState('');
@@ -24,7 +24,7 @@ const SearchUser = () => {
     const token = useSelector((state:RootState) => state.auth.token);
     // 点击发送发送申请按钮
     const handleFriendRequest = () => {
-        fetch(`/api/sendFriendRequest/${gotUserName}`, {
+        fetch(getUrl(`/api/sendFriendRequest/${userName}`), {
             method: 'POST',
             headers: {
                 'Authorization': `${token}` // 发送本地token到后端
@@ -66,7 +66,7 @@ const SearchUser = () => {
 
     // 搜索用户
     const Search = () => {
-        fetch(`/api/searchUser/${userName}`, {
+        fetch(getUrl(`/api/searchUser/${userName}`), {
             method: 'GET',
         })
         .then((res) => res.json())
@@ -95,7 +95,7 @@ const SearchUser = () => {
     const FriendRequest = () => {
         if(sendBySearch) {
             // 验证jwt令牌
-            fetch(`/api/user/${senderName}`,{
+            fetch(getUrl(`/api/user/${senderName}`),{
                 method: 'GET',
                 headers: {
                   'Authorization': `${token}`

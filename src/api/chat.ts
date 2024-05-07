@@ -1,5 +1,6 @@
 import { headers } from 'next/headers';
 import { Conversation, Message } from './types';
+import { getUrl } from './utils';
 import axios from 'axios';
 import { useEffect } from 'react';
 export type AddMessageArgs = {
@@ -15,7 +16,7 @@ export async function addMessage({
     content,
     replying,               // 回应哪条消息的message id
   }: AddMessageArgs, token:string) {
-    const { data } = await axios.post(`/api/chat/message`, {
+    const { data } = await axios.post(getUrl(`/api/chat/message`), {
       userName: userName,   // 发送者的用户名
       chat_id: chat_id,     // 会话ID
       content: content,     // 消息内容
@@ -44,7 +45,7 @@ export async function getMessages({
     const messages: Message[] = [];
     let info:string = '';
     try{
-      const { data } = await axios.get("/api/chat/message", {
+      const { data } = await axios.get(getUrl("/api/chat/message"), {
         headers: {
           Authorization: `${token}`
         },
@@ -83,7 +84,7 @@ export async function addConversation({ isGroup, memberList}: AddConversationArg
     //TODO:handle possible error
     const createrName:string = memberList[0];
     const memberName = memberList[1];
-    const { data } = await axios.post("/api/chat/createPrivate", {
+    const { data } = await axios.post(getUrl("/api/chat/createPrivate"), {
         createrName,
         memberName,
       },{
@@ -114,7 +115,7 @@ export async function getConversations({ userName, idList,}: GetConversationsArg
   const params = new URLSearchParams();
   idList.forEach((id) => params.append('chat_id', id.toString()));
   params.append('userName',userName)
-  const { data } = await axios.get('/api/chat/chat', {
+  const { data } = await axios.get(getUrl('/api/chat/chat'), {
     params,
     headers: {
       Authorization: `${token}`
@@ -126,7 +127,7 @@ export async function getConversations({ userName, idList,}: GetConversationsArg
   //   let avatar = "default"
   //   if(!conversation.isGroup){
   //     const friendName = conversation.memberList.filter((user) => user !== userName)[0];
-  //     fetch(`/api/friendList/${userName}/${friendName}`, {
+  //     fetch(getUrl(`/api/friendList/${userName}/${friendName}`), {
   //         method: 'GET',
   //         // 无需鉴权
   //     })

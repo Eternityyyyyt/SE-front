@@ -101,7 +101,7 @@ const ConversationSelection: React.FC<ConversationSelectionProps> = ({
       //console.log(conversations)
       //conversations = conversations.sort((a,b) => latestMessagesTime[b.chat_id] - latestMessagesTime[a.chat_id])
       for (const conversation of conversations) {
-        console.log(conversation)
+        //console.log(conversation)
         if (!conversation.isGroup) {
           // 假设getPrivateConversationDisplayAvatar返回一个Promise
           //console.log(conversation.chat_id)

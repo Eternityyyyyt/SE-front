@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { setName, setToken } from "../redux/auth";
 import { useDispatch } from "react-redux";
-
+import { getUrl } from '../api/utils';
+import axios from 'axios';
 const LoginPage = () => {
   const [userName, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -14,7 +15,7 @@ const LoginPage = () => {
   };
   
   const handleLogin = () => {
-    fetch('/api/login',{
+    fetch(getUrl('/api/login'),{
       method: 'POST',
       body: JSON.stringify({userName, password}),
     })

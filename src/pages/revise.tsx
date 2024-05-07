@@ -4,7 +4,7 @@ import { useSelector, UseDispatch, useDispatch } from 'react-redux';
 import { RootState } from "@/redux/store";
 import { setAvatar, setEmail, setPhoneNumber, setNickname } from '@/redux/auth';
 import styles from './avatar.module.css';
-
+import { getUrl } from '../api/utils';
 const Revise = () => {
     const router = useRouter();
     const dispatch = useDispatch();
@@ -34,7 +34,7 @@ const Revise = () => {
         if(newEmail) {dispatch(setEmail(newEmail));}
         if(newName) {dispatch(setNickname(newName));}
         
-        fetch(`/api/revise/${userName}`, {
+        fetch(getUrl(`/api/revise/${userName}`), {
             method: 'POST',
             headers: {
                 'Authorization': `${token}`

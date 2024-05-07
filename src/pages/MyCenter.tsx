@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { resetAuth } from '@/redux/auth';
 import { RootState } from "@/redux/store";
 import styles from './avatar.module.css';
-
+import { getUrl } from '../api/utils';
 const MyCenter = () => {
     const router = useRouter();
     const dispatch = useDispatch();
@@ -25,7 +25,7 @@ const MyCenter = () => {
     },[nickname, phoneNumber, email, avatar]);
     
     const deleteUser = () => {
-        fetch(`/api/user/${userName}`,{
+        fetch(getUrl(`/api/user/${userName}`),{
             method: 'DELETE',
             headers: {
               'Authorization': `${token}` // 发送本地token到后端

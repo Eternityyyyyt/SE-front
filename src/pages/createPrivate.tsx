@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { RootState } from "@/redux/store";
 import { useSelector, useDispatch } from "react-redux";
 import { addChatId } from "@/redux/auth";
-
+import { getUrl } from '../api/utils';
 
 const CreatePrivateChat = () => {
     const createrName = useSelector((state:RootState) => state.auth.name);
@@ -17,7 +17,7 @@ const CreatePrivateChat = () => {
     const dispatch = useDispatch();
 
     const handleCreateChat = () => {
-        fetch(`api/chat/createPrivate`, {
+        fetch(getUrl(`api/chat/createPrivate`), {
             method: 'POST',
             headers: {
                 'Authorization': `${token}`
