@@ -86,8 +86,11 @@ const Chatbox: React.FC<ChatboxProps> = ({
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]); // 选中的管理员列表
   const [memberList, setMemberList] = useState<string[]>([]); // 群成员列表
   const [isGroup, setIsGroup] = useState(false);
-  const [visibleGroup, setVisibleGroup] = useState(false);  // 群聊
-  const [visiblePrivate, setVisiblePrivate] = useState(false); // 私聊
+  const [groupOwner, setGroupOwner] = useState(''); // 群主
+  const [visibleGroup, setVisibleGroup] = useState(false);  // 群聊settings Modal
+  const [visiblePrivate, setVisiblePrivate] = useState(false); // 私聊settings Modal
+  const [visibleAdmin, setVisibleAdmin] = useState(false); // 管理员Modal
+  const [visibleOwner, setVisibleOwner] = useState(false); // 群主Modal
   const settings = () => {
     if(conversation) {
       setIsGroup(conversation.isGroup);
@@ -95,6 +98,10 @@ const Chatbox: React.FC<ChatboxProps> = ({
       setMemberList(conversation.memberList);
       // 清空群管理员选择列表
       setSelectedMembers([]);
+      // 加载群主信息
+      if(conversation.owner) {
+        setGroupOwner(conversation.owner);
+      }
     }
   };
   const control = () => {
@@ -107,9 +114,35 @@ const Chatbox: React.FC<ChatboxProps> = ({
       setVisibleGroup(false);
     }
   };
+  const admin = () => {
+    if(groupOwner !== userName) {
+      alert("You are not the owner of this group");
+      return;
+    } else {
+      setVisibleAdmin(true);
+    }
+    
+  };
+  const owner = () => {
+    if(groupOwner !== userName) {
+      alert("You are not the owner of this group");
+      return;
+    } else {
+      setVisibleOwner(true);
+    }
+    
+  };
   const handleCancel = () => {
     setVisibleGroup(false);
     setVisiblePrivate(false);
+  }
+  const handleAdminCancel = () => {
+    setVisibleAdmin(false);
+    setSelectedMembers([]);
+  }
+  const handleOwnerCancel = () => {
+    setGroupOwner('');
+    setVisibleOwner(false);
   }
   const addMembers = (memberName:string) => {
     if(selectedMembers.includes(memberName)){
@@ -121,8 +154,13 @@ const Chatbox: React.FC<ChatboxProps> = ({
   const removeMembers = (memberName:string) => {
     setSelectedMembers(currentMembers => currentMembers.filter(item => item !== memberName));
   }
-  const handleOk = async() => {
-    // TODO 处理确定按钮的逻辑
+  const setOwner = (member:string) => {
+    setGroupOwner(member);
+  }
+  const handleAdminOk = async() => {
+    if(selectedMembers.length === 0) {
+      return;
+    }
     const {data} = await axios.post(getUrl('/api/chat/setAdmin'), {
         ownerName: userName,
         chat_id: chat_id,
@@ -133,12 +171,41 @@ const Chatbox: React.FC<ChatboxProps> = ({
         }
     });
     if(data.code === 0) {
-      setVisibleGroup(false);
+      setVisibleAdmin(false);
+      setSelectedMembers([]);
+      if(conversation?.adminList) {
+        conversation.adminList = selectedMembers;
+      }
     } else {
       alert("Somethng wrong");
-      setVisibleGroup(false);
+      setVisibleAdmin(false);
     }
   }
+  const handleOwnerOk = async() => {
+    if(!groupOwner) {
+      return;
+    }
+    const {data} = await axios.post(getUrl('/api/chat/changeOwner'), {
+      ownerName: conversation?.owner,
+      chat_id: chat_id,
+      newOwnerName: groupOwner
+    }, {
+      headers: {
+          'Authorization': `${token}`
+      }
+    });
+    if(data.code === 0) {
+      if(conversation?.owner) {
+        conversation.owner = groupOwner;
+      }
+      setVisibleOwner(false);
+      setGroupOwner('');
+    } else {
+      alert("Somethng wrong");
+      setVisibleOwner(false);
+    }
+    
+  };
   const menu = (
     <Menu>
       <Menu.Item>
@@ -162,20 +229,34 @@ const Chatbox: React.FC<ChatboxProps> = ({
       )}
 
       <Modal
-        title="设置群管理员"
+        title="设置"
         visible={visibleGroup}
         onCancel={handleCancel}
         footer={[
           <Button key="cancel" onClick={handleCancel}>取消</Button>,
-          <Button key="create" type="primary" onClick={handleOk}>确定</Button>
+        ]}
+        >
+          <Button key="setAdmin" type="primary" onClick={admin}>设置管理员</Button>
+          <Button key="setOwner" type="primary" onClick={owner}>设置群主</Button>
+        </Modal>
+
+
+      <Modal
+        title="设置群管理员"
+        visible={visibleAdmin}
+        onCancel={handleAdminCancel}
+        footer={[
+          <Button key="cancel" onClick={handleAdminCancel}>取消</Button>,
+          <Button key="create" type="primary" onClick={handleAdminOk}>确定</Button>
         ]}
         >
           <div>
+            <p>当前群管理员：{conversation?.adminList ? conversation.adminList.join(', ') : 'None'}</p>
             <p>请选择要设置为群管理员的成员：{selectedMembers.join(', ')}</p>
           </div>
           <List
             bordered
-            dataSource={memberList.filter(item => item !== userName)} // 去掉群主
+            dataSource={memberList.filter(item => item !== userName)}
             renderItem={(member, index) => (
             <List.Item key={index} actions={[
                 <Button key={"add"} type='dashed' onClick={() => addMembers(member)}><CheckOutlined /></Button>,
@@ -186,6 +267,30 @@ const Chatbox: React.FC<ChatboxProps> = ({
             )}
             />
         </Modal>
+
+        <Modal
+          title="设置群主"
+          visible={visibleOwner}
+          onCancel={handleOwnerCancel}
+          footer={[
+            <Button key="cancel" onClick={handleOwnerCancel}>取消</Button>,
+            <Button key="create" type="primary" onClick={handleOwnerOk}>确定</Button>
+          ]}
+          >
+            <p>当前群主为：{conversation?.owner}</p>
+            <p>请选择新的群主</p>
+            <List
+              bordered
+              dataSource={memberList.filter(item => item !== userName)}
+              renderItem={(member, index) => (
+                <List.Item key={index} actions={[
+                  <Button key={("setOwner")} type='dashed' onClick={() => setOwner(member)}><CheckOutlined /></Button>
+                ]}
+                >{member}
+                </List.Item>
+                )}
+                />
+          </Modal>
 
         {/* 私聊相关Modal TODO */}
 

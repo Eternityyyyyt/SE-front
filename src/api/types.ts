@@ -26,6 +26,6 @@ export type Conversation = {
     isGroup: boolean;
     unreadCount?: number;
     owner?:string;
-    adminList?:string;
+    adminList?:string[];
     avatar?:string
 };
