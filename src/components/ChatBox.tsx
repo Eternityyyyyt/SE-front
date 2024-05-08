@@ -85,12 +85,14 @@ const Chatbox: React.FC<ChatboxProps> = ({
   };
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]); // 选中的管理员列表
   const [memberList, setMemberList] = useState<string[]>([]); // 群成员列表
+  const [removeMember, setRemoveMember] = useState(''); // 移除的成员，一次只能删除一个
   const [isGroup, setIsGroup] = useState(false);
   const [groupOwner, setGroupOwner] = useState(''); // 群主
   const [visibleGroup, setVisibleGroup] = useState(false);  // 群聊settings Modal
   const [visiblePrivate, setVisiblePrivate] = useState(false); // 私聊settings Modal
   const [visibleAdmin, setVisibleAdmin] = useState(false); // 管理员Modal
   const [visibleOwner, setVisibleOwner] = useState(false); // 群主Modal
+  const [visibleRemoveMember, setVisibleRemoveMember] = useState(false); // 移除成员Modal
   const settings = () => {
     if(conversation) {
       setIsGroup(conversation.isGroup);
@@ -132,28 +134,52 @@ const Chatbox: React.FC<ChatboxProps> = ({
     }
     
   };
+  const removeMemberInit = () => {
+    // 需要是群主或群管理员才能移除成员
+    if(conversation?.adminList) {
+      if(!conversation.adminList.includes(userName) && conversation.owner !== userName) {
+        alert("You are not the owner or admin of this group");
+        return;
+      }
+    }
+    else if(conversation?.owner !== userName) {
+      alert("You are not the owner or admin of this group");
+      return;
+    }
+    setVisibleRemoveMember(true);
+    
+  };
   const handleCancel = () => {
     setVisibleGroup(false);
     setVisiblePrivate(false);
-  }
+  };
   const handleAdminCancel = () => {
     setVisibleAdmin(false);
     setSelectedMembers([]);
-  }
+  };
   const handleOwnerCancel = () => {
     setGroupOwner('');
     setVisibleOwner(false);
+  };
+  const handleRemoveMemberCancel = () => {
+    setRemoveMember('');
+    setVisibleRemoveMember(false);
   }
-  const addMembers = (memberName:string) => {
+
+  const addAdminMembers = (memberName:string) => {
     if(selectedMembers.includes(memberName)){
       return;
     } else {
       setSelectedMembers(currentMembers => [...currentMembers, memberName]);
     }
   };
-  const removeMembers = (memberName:string) => {
+  const setRemoveMembers = (memberName:string) => {
+    setRemoveMember(memberName);
+    
+  };
+  const removeAdminMembers = (memberName:string) => {
     setSelectedMembers(currentMembers => currentMembers.filter(item => item !== memberName));
-  }
+  };
   const setOwner = (member:string) => {
     setGroupOwner(member);
   }
@@ -206,6 +232,35 @@ const Chatbox: React.FC<ChatboxProps> = ({
     }
     
   };
+  const handleRemoveMemberOk = async() => {
+    if(conversation?.adminList) {
+      if(userName !== groupOwner && !conversation?.adminList.includes(removeMember)) {
+        alert("Admin can not remove admin");
+        return;
+      }
+    }
+    const {data} = await axios.post(getUrl('/api/chat/removeMember'), {
+      userName: userName,
+      chat_id: chat_id,
+      memberName: removeMember
+    }, {
+      headers: {
+          'Authorization': `${token}`
+      }
+    });
+    if(data.code === 0) {
+      setVisibleRemoveMember(false);
+      setRemoveMember('');
+      // update
+      if(conversation?.memberList) {
+        conversation.memberList = conversation.memberList.filter(item => item !== removeMember);
+      }
+    } else {
+      alert("Somethng wrong");
+      setVisibleRemoveMember(false);
+      setRemoveMember('');
+    }
+  }
   const menu = (
     <Menu>
       <Menu.Item>
@@ -238,6 +293,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
         >
           <Button key="setAdmin" type="primary" onClick={admin}>设置管理员</Button>
           <Button key="setOwner" type="primary" onClick={owner}>设置群主</Button>
+          <Button key="removeMember" type="primary" onClick={removeMemberInit}>移除成员</Button>
         </Modal>
 
 
@@ -259,8 +315,8 @@ const Chatbox: React.FC<ChatboxProps> = ({
             dataSource={memberList.filter(item => item !== userName)}
             renderItem={(member, index) => (
             <List.Item key={index} actions={[
-                <Button key={"add"} type='dashed' onClick={() => addMembers(member)}><CheckOutlined /></Button>,
-                <Button key={"remove"} type='dashed' onClick={() => removeMembers(member)}><CloseOutlined /></Button>
+                <Button key={"add"} type='dashed' onClick={() => addAdminMembers(member)}><CheckOutlined /></Button>,
+                <Button key={"remove"} type='dashed' onClick={() => removeAdminMembers(member)}><CloseOutlined /></Button>
             ]}
             >{member}
             </List.Item>
@@ -291,6 +347,31 @@ const Chatbox: React.FC<ChatboxProps> = ({
                 )}
                 />
           </Modal>
+
+
+          <Modal
+            title="移除成员"
+            visible={visibleRemoveMember}
+            onCancel={handleRemoveMemberCancel}
+            footer={[
+              <Button key="cancel" onClick={handleRemoveMemberCancel}>取消</Button>,
+              <Button key="create" type="primary" onClick={handleRemoveMemberOk}>确定</Button>
+            ]}
+            >
+              <p>请选择要移除的成员：{removeMember}</p>
+              <List
+                bordered
+                dataSource={memberList.filter(item => item !== userName)}
+                renderItem={(member, index) => (
+                  <List.Item key={index} actions={[
+                    <Button key={"add"} type='dashed' onClick={() => setRemoveMembers(member)}><CheckOutlined /></Button>,
+
+                  ]}
+                  >{member}
+                  </List.Item>
+                  )}
+                  />
+            </Modal>
 
         {/* 私聊相关Modal TODO */}
 
