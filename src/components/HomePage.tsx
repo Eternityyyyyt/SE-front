@@ -8,13 +8,23 @@ import { useSelector } from 'react-redux';
 import ConversationSelection from './ConversationSelection';
 import Chatbox from './ChatBox';
 import {  useRequest } from 'ahooks';
-import { Divider, message ,Button } from 'antd';
+import { Modal, List ,Button, message, Menu, Dropdown } from 'antd';
+import { PlusCircleOutlined,  DownOutlined} from '@ant-design/icons';
 import { useDispatch } from "react-redux";
 import { setActiveChat } from '@/redux/activeChat';
+import { getUrl } from '@/api/utils';
+import axios from 'axios';
+import { useRouter } from 'next/router';
+interface FriendDataList {
+  userName: string;
+  nickName: string;
+  avatar: string;
+}
 
 const HomePage = () => {
     const userName = useSelector((state:RootState) => state.auth.name);
     const token = useSelector((state:RootState) => state.auth.token);
+    const router = useRouter();
     // 获取当前用户有的chat_id
     const [memberName, setMemberName] = useState('');
     //const [chat, setChat] = useState<Conversation>();
@@ -55,12 +65,104 @@ const HomePage = () => {
     
     useMessageListener(update, userName!); // 使用消息监听器钩子，当有新消息时调用更新函数
 
+    const [friendDataList, setFriendDataList] = useState<FriendDataList[]>([]);
+    const [friendList, setFriendList] = useState<string[]>([]);
+    const [selectedMembers, setSelectedMembers] = useState<string[]>([userName]); // 初始化为创建者
+    const [visible, setVisible] = useState(false);    // modal的显示状态
+
+    const handleDropDownClick = () => {
+      fetch(getUrl(`/api/friendList/${userName}`), {
+        method: 'GET',
+        headers: {
+          'Authorization': `${token}`
+        },
+      })
+      .then(data => data.json())
+      .then(data => {
+        if(Number(data.code) === 0){
+          setFriendDataList(data.friendDataList);
+          setFriendList(friendDataList.map(item => item.userName)); // 后续删除friendList，直接使用friendDataList
+          console.log(friendDataList);
+        }else{
+          message.error(data.msg);
+        }
+      });
+    }
+    // 第一次加载该页面就获取好友列表一次
+    useEffect(() => {
+      handleDropDownClick();
+    }, []);
+    const createGroup = () => {
+      setVisible(true);
+    };
+    const addMembers = (memberName:string) => {
+      setSelectedMembers(currentMembers => [...currentMembers, memberName]);
+    };
+    const removeMembers = (memberName:string) => {
+      setSelectedMembers(currentMembers => currentMembers.filter(item => item !== memberName));
+    }
+    const handleCancel = () => {
+      setVisible(false);
+    };
+    const handleOk = async() => {
+      const newChat = await addConversation({isGroup: true, memberList: selectedMembers}, token);
+      if(newChat){
+        const chatId = newChat.chat_id;
+        await db.pullConversations(userName, [chatId], token);
+        dispatch(setActiveChat(chatId));
+        setVisible(false);
+        refresh();
+
+      }
+    }
+    const menu = (
+      <Menu>
+        <Menu.Item>
+          <Button type="dashed" key={"create"}  onClick={createGroup}>发起群聊</Button>
+        </Menu.Item>
+      </Menu>
+
+    );
+
   return (
     <div className={styles.wrap}>
       <div className={styles.container}>
         <div className={styles.settings}> 
-
+          
           <div className={styles.conversations}>
+            <Dropdown overlay = {menu} trigger={['click']}>
+              <Button icon = {<PlusCircleOutlined />} onClick={handleDropDownClick}>
+                {/* <DownOutlined /> */}
+              </Button>
+            </Dropdown>
+            <Modal
+              title="创建群聊"
+              visible={visible}
+              onCancel={handleCancel}
+              footer={[
+                <Button key="cancel" onClick={handleCancel}>取消</Button>,
+                <Button key="create" type="primary" onClick={handleOk}>创建群聊</Button>
+              ]}
+              >
+                <div>
+                  {/* <List bordered dataSource={selectedMembers} renderItem={item => <List.Item>{item}</List.Item>} /> */}
+                  <p>已选择的群组成员：{selectedMembers.join(',')}</p>
+                </div>
+                <List
+                  bordered
+                  dataSource={friendList}
+                  renderItem={(member, index) => (
+                    <List.Item key={index} actions={[
+                      <Button type='dashed' onClick={() => addMembers(member)}>添加</Button>,
+                      <Button type='dashed' onClick={() => removeMembers(member)}>删除</Button>
+                    ]}
+                    >{member}
+                    </List.Item>
+                  )}
+                  />
+              </Modal>
+              
+
             <ConversationSelection // 会话选择组件
               me={userName}
               conversations={conversations || []}

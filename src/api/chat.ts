@@ -93,20 +93,50 @@ export async function addConversation({ isGroup, memberList}: AddConversationArg
         }
     });
       const { chat_id, alreadyCreated } = data.data;
-      let isGroup:Boolean = false
+      const isGroup:Boolean = false
       return {
         chat_id,
         memberList,
         isGroup
       } as Conversation;
   }
-  else{//add group chat, TODO
-    const chat_id = 0;
-    return {
-      chat_id,
-      memberList,
-      isGroup
-    } as Conversation;
+  else{
+    const createrName:string = memberList[0];
+    const members:string[] = memberList.slice(1);
+    const { data } = await axios.post(getUrl('/api/chat/createGroup'), {
+      userName: createrName,
+      memberList: members,
+    }, {
+      headers: {
+        'Authorization': `${token}`
+      }
+    });
+    // 处理返回结果
+    if(Number(data.code) === 0){
+      const chat_id = data.chat_id;
+      const isGroup:Boolean = true
+      return {
+        chat_id,
+        memberList,
+        isGroup
+      } as Conversation;
+    }
+    else{
+      // axios的错误处理方式似乎不是这样TODO
+      switch(Number(data.code)){
+        case 1:
+          alert("Not Found");
+          break;
+        case 2:
+          alert("Invalid or Expired JWT");
+          break;
+        case 3:
+          alert("Group Number < 3");
+          break;
+        case 4:
+          alert("No Friends");
+      }
+    }
   }
 }
 

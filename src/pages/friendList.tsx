@@ -64,11 +64,13 @@ const FriendList = () => {
 
     const GoToChat = async(friendName:string) => {
         const newChat = await addConversation({isGroup:false, memberList:[userName,friendName]}, token);; // 异步函数需要用await
-        const chatId = newChat.chat_id;
-        console.log(chatId);
-        await db.pullConversations(userName,[chatId],token);
-        dispatch(setActiveChat(chatId));
-        router.push('/chat');
+        if(newChat){
+            const chatId = newChat.chat_id;
+            console.log(chatId);
+            await db.pullConversations(userName,[chatId],token);
+            dispatch(setActiveChat(chatId));
+            router.push('/chat');
+        }
     };
     return (
         <div>

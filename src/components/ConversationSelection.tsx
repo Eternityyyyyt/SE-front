@@ -149,19 +149,19 @@ const ConversationSelection: React.FC<ConversationSelectionProps> = ({
             }
             title={`${getConversationDisplayName(item,me)}`}
             description={
-              // // 会话描述部分显示最新消息
-              // !item.isGroup ? (
-              //   <div className={styles.membersList}>
-              //     {item.memberList.filter((user) => user !== me)}
-              //     {/* 私聊时过滤掉当前用户，只显示对方用户名 */}
-              //   </div>
-              // ) : (
-              //   <div className={styles.membersList}>
-              //     {item.memberList.join(', ')}
-              //     {/* 群聊时显示所有成员用户名，以逗号分隔 */}
-              //   </div>
-              // )
-              `${latestMessages[item.chat_id]}      ${formattime(latestMessagesTime[item.chat_id])}`
+              !item.isGroup ? (
+                <div className={styles.membersList}>
+                  {/* {item.memberList.filter((user) => user !== me)} */}
+                  <p>{latestMessages[item.chat_id]}      {formattime(latestMessagesTime[item.chat_id])}</p>
+                  
+                </div>
+              ) : (
+                <div>
+                  {item.memberList.join(', ')}
+                  <p>{latestMessages[item.chat_id]}      {formattime(latestMessagesTime[item.chat_id])}</p>
+                </div>
+                
+              )
             }
           />
         </List.Item>
