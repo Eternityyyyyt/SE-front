@@ -13,7 +13,6 @@ import { PlusCircleOutlined,  DownOutlined} from '@ant-design/icons';
 import { useDispatch } from "react-redux";
 import { setActiveChat } from '@/redux/activeChat';
 import { getUrl } from '@/api/utils';
-import axios from 'axios';
 import { useRouter } from 'next/router';
 interface FriendDataList {
   userName: string;

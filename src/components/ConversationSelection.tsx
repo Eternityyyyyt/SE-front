@@ -72,7 +72,7 @@ const ConversationSelection: React.FC<ConversationSelectionProps> = ({
         const newLatestMessage:Record<number, string>= {};
         const newLatestMessageTime:Record<number, number>= {};
         for (const conversation of conversations) {
-          if (!conversation.isGroup) {
+          // if (!conversation.isGroup) {
             await db.getCachedMessages(conversation)
             .then((messages) => {
               const latestmessage = messages.sort((a, b) => b.created_time - a.created_time)[0]
@@ -85,7 +85,7 @@ const ConversationSelection: React.FC<ConversationSelectionProps> = ({
                 newLatestMessageTime[conversation.chat_id] = 0
               }
             })
-          }
+          // }
         }
         setLatestMessages(newLatestMessage);
         setLatestMessagesTime(newLatestMessageTime);
@@ -156,7 +156,7 @@ const ConversationSelection: React.FC<ConversationSelectionProps> = ({
                   
                 </div>
               ) : (
-                <div>
+                <div className={styles.membersList}>
                   {item.memberList.join(', ')}
                   <p>{latestMessages[item.chat_id]}      {formattime(latestMessagesTime[item.chat_id])}</p>
                 </div>
