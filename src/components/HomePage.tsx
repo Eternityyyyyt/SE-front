@@ -9,7 +9,7 @@ import ConversationSelection from './ConversationSelection';
 import Chatbox from './ChatBox';
 import {  useRequest } from 'ahooks';
 import { Modal, List ,Button, message, Menu, Dropdown } from 'antd';
-import { PlusCircleOutlined,  DownOutlined} from '@ant-design/icons';
+import { PlusCircleOutlined,  DownOutlined, CheckOutlined, CloseOutlined} from '@ant-design/icons';
 import { useDispatch } from "react-redux";
 import { setActiveChat } from '@/redux/activeChat';
 import { getUrl } from '@/api/utils';
@@ -86,6 +86,7 @@ const HomePage = () => {
           message.error(data.msg);
         }
       });
+      setSelectedMembers([userName]);
     }
     // 第一次加载该页面就获取好友列表一次
     useEffect(() => {
@@ -95,7 +96,12 @@ const HomePage = () => {
       setVisible(true);
     };
     const addMembers = (memberName:string) => {
-      setSelectedMembers(currentMembers => [...currentMembers, memberName]);
+      if(selectedMembers.includes(memberName)){
+        return;
+      } else {
+        setSelectedMembers(currentMembers => [...currentMembers, memberName]);
+      }
+      
     };
     const removeMembers = (memberName:string) => {
       setSelectedMembers(currentMembers => currentMembers.filter(item => item !== memberName));
@@ -152,8 +158,8 @@ const HomePage = () => {
                   dataSource={friendList}
                   renderItem={(member, index) => (
                     <List.Item key={index} actions={[
-                      <Button key={"add"} type='dashed' onClick={() => addMembers(member)}>添加</Button>,
-                      <Button key={"remove"} type='dashed' onClick={() => removeMembers(member)}>删除</Button>
+                      <Button key={"add"} type='dashed' onClick={() => addMembers(member)}><CheckOutlined /></Button>,
+                      <Button key={"remove"} type='dashed' onClick={() => removeMembers(member)}><CloseOutlined /></Button>
                     ]}
                     >{member}
                     </List.Item>

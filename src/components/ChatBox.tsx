@@ -1,5 +1,5 @@
 import React, { useRef, useState ,useEffect} from 'react';
-import { Input, Button, Divider, message } from 'antd';
+import { Input, Button, Divider, message, Menu, Dropdown, Modal, List } from 'antd';
 import { useRequest } from 'ahooks';
 import styles from './ChatBox.module.css';
 import MessageBubble from './MessageBubble';
@@ -10,6 +10,10 @@ import { db } from '../api/db';
 import { RootState } from '@/redux/store';
 import { useSelector } from 'react-redux';
 import {getUserAvatar} from  '../api/utils'
+import { PlusCircleOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
+import axios from 'axios';
+import { getUrl } from '../api/utils';
+import { icons } from 'antd/es/image/PreviewGroup';
 export type ChatboxProps = {
   me: string; // 当前用户
   conversation?: Conversation; // 当前选中的会话 (可能为空)
@@ -79,6 +83,69 @@ const Chatbox: React.FC<ChatboxProps> = ({
       .catch(() => message.error('消息发送失败'))
       .finally(() => setSending(false));
   };
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]); // 选中的管理员列表
+  const [memberList, setMemberList] = useState<string[]>([]); // 群成员列表
+  const [isGroup, setIsGroup] = useState(false);
+  const [visibleGroup, setVisibleGroup] = useState(false);  // 群聊
+  const [visiblePrivate, setVisiblePrivate] = useState(false); // 私聊
+  const settings = () => {
+    if(conversation) {
+      setIsGroup(conversation.isGroup);
+      // 加载群成员列表
+      setMemberList(conversation.memberList);
+      // 清空群管理员选择列表
+      setSelectedMembers([]);
+    }
+  };
+  const control = () => {
+    if(isGroup === true) {
+      setVisibleGroup(true);
+      setVisiblePrivate(false);
+    }
+    else {
+      setVisiblePrivate(true);
+      setVisibleGroup(false);
+    }
+  };
+  const handleCancel = () => {
+    setVisibleGroup(false);
+    setVisiblePrivate(false);
+  }
+  const addMembers = (memberName:string) => {
+    if(selectedMembers.includes(memberName)){
+      return;
+    } else {
+      setSelectedMembers(currentMembers => [...currentMembers, memberName]);
+    }
+  };
+  const removeMembers = (memberName:string) => {
+    setSelectedMembers(currentMembers => currentMembers.filter(item => item !== memberName));
+  }
+  const handleOk = async() => {
+    // TODO 处理确定按钮的逻辑
+    const {data} = await axios.post(getUrl('/api/chat/setAdmin'), {
+        ownerName: userName,
+        chat_id: chat_id,
+        adminList: selectedMembers
+    }, {
+        headers: {
+            'Authorization': `${token}`
+        }
+    });
+    if(data.code === 0) {
+      setVisibleGroup(false);
+    } else {
+      alert("Somethng wrong");
+      setVisibleGroup(false);
+    }
+  }
+  const menu = (
+    <Menu>
+      <Menu.Item>
+        <Button type="dashed" key={"control"}  onClick={control}>管理</Button>
+      </Menu.Item>
+    </Menu>
+  );
 
   return (
     <div className={styles.container}>
@@ -86,12 +153,45 @@ const Chatbox: React.FC<ChatboxProps> = ({
         <>
           <div className={styles.title}>
             {getConversationDisplayName(conversation,userName)}
-        {/* <div>{getConversationDisplaymemberList(conversation,userName)}</div> */}
+            <Dropdown overlay={menu} trigger={['click']}>
+              <Button type='dashed' shape='circle' key={"settings"}  onClick={settings} className={styles.settings}>. . .</Button>
+            </Dropdown>
           </div>
-          
           <Divider className={styles.divider} />
         </>
       )}
+
+      <Modal
+        title="设置群管理员"
+        visible={visibleGroup}
+        onCancel={handleCancel}
+        footer={[
+          <Button key="cancel" onClick={handleCancel}>取消</Button>,
+          <Button key="create" type="primary" onClick={handleOk}>确定</Button>
+        ]}
+        >
+          <div>
+            <p>请选择要设置为群管理员的成员：{selectedMembers.join(', ')}</p>
+          </div>
+          <List
+            bordered
+            dataSource={memberList.filter(item => item !== userName)} // 去掉群主
+            renderItem={(member, index) => (
+            <List.Item key={index} actions={[
+                <Button key={"add"} type='dashed' onClick={() => addMembers(member)}><CheckOutlined /></Button>,
+                <Button key={"remove"} type='dashed' onClick={() => removeMembers(member)}><CloseOutlined /></Button>
+            ]}
+            >{member}
+            </List.Item>
+            )}
+            />
+        </Modal>
+
+        {/* 私聊相关Modal TODO */}
+
+
+      
+
 
       <div className={styles.messages}>
         {/* 消息列表容器 */}
