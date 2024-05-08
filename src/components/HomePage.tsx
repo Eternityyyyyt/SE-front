@@ -153,8 +153,8 @@ const HomePage = () => {
                   dataSource={friendList}
                   renderItem={(member, index) => (
                     <List.Item key={index} actions={[
-                      <Button type='dashed' onClick={() => addMembers(member)}>添加</Button>,
-                      <Button type='dashed' onClick={() => removeMembers(member)}>删除</Button>
+                      <Button key={"add"} type='dashed' onClick={() => addMembers(member)}>添加</Button>,
+                      <Button key={"remove"} type='dashed' onClick={() => removeMembers(member)}>删除</Button>
                     ]}
                     >{member}
                     </List.Item>
