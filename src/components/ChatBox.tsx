@@ -99,7 +99,12 @@ const Chatbox: React.FC<ChatboxProps> = ({
   const [visibleOwner, setVisibleOwner] = useState(false);                // 群主Modal
   const [visibleRemoveMember, setVisibleRemoveMember] = useState(false);  // 移除成员Modal
   const [visibleDisplayMembers, setVisibleDisplayMembers] = useState(false);  // 显示群成员Modal
+  const [visibleWithdraw, setVisibleWithdraw] = useState(false);           // 退出群聊确认Modal
   // 三个点
+  // useEffect(() => {
+
+    
+  // },[groupOwner])
   const settings = () => {
     if(conversation) {
       setIsGroup(conversation.isGroup);
@@ -167,6 +172,20 @@ const Chatbox: React.FC<ChatboxProps> = ({
     setVisibleRemoveMember(true);
     
   };
+  const withdraw = () => {
+    // 判断是否在群中，防止二次退群
+    if(!conversation?.memberList.includes(userName)) {
+      alert("You are not in this group");
+      setVisibleGroup(false);
+      return;
+    }
+    if(conversation?.owner === userName) {
+      alert("You are the owner of this group, change the owner first");
+      return;
+    } else {
+      setVisibleWithdraw(true);
+    }
+  };
   /* 取消键函数 */
   // handleSettingCancel
   const handleCancel = () => {
@@ -188,6 +207,9 @@ const Chatbox: React.FC<ChatboxProps> = ({
   };
   const handleDisplayCancel = () => {
     setVisibleDisplayMembers(false);
+  };
+  const handleWithdrawCancel = () => {
+    setVisibleWithdraw(false);
   }
   /* 添加键函数 */
   const addAdminMembers = (memberName:string) => {
@@ -232,25 +254,25 @@ const Chatbox: React.FC<ChatboxProps> = ({
     }
   }
   const handleOwnerOk = async() => {
-    if(!groupOwner) {
+    if(!groupOwnerTmp) {
       return;
     }
     setGroupOwner(groupOwnerTmp);     // 确认改为当前选中者
     const {data} = await axios.post(getUrl('/api/chat/changeOwner'), {
       ownerName: conversation?.owner,
       chat_id: chat_id,
-      newOwnerName: groupOwner
+      newOwnerName: groupOwnerTmp
     }, {
       headers: {
           'Authorization': `${token}`
       }
     });
     if(data.code === 0) {
-      if(conversation?.owner) {
-        conversation.owner = groupOwner;
+      if(conversation) {
+        conversation.owner = groupOwnerTmp;
       }
       setVisibleOwner(false);
-      setGroupOwner('');
+      setGroupOwnerTmp('');
     } else {
       alert("Somethng wrong");
       setVisibleOwner(false);
@@ -285,7 +307,29 @@ const Chatbox: React.FC<ChatboxProps> = ({
       setVisibleRemoveMember(false);
       setRemoveMember('');
     }
-  }
+  };
+  const handleWithdrawOk = async() => {
+    const {data} = await axios.post(getUrl('/api/chat/leaveGroup'), {
+      userName: userName,
+      chat_id: chat_id
+      
+    },{
+      headers: {
+          'Authorization': `${token}`
+      }
+    });
+    if(data.code === 0) {
+      setVisibleWithdraw(false);
+      // update
+      if(conversation?.memberList) {
+        conversation.memberList = conversation.memberList.filter(item => item !== userName);
+      }
+    } else {
+      alert("Somethng wrong");
+      setVisibleWithdraw(false);
+      setVisibleGroup(false);
+    }
+  };
   const menu = (
     <Menu>
       <Menu.Item>
@@ -321,7 +365,9 @@ const Chatbox: React.FC<ChatboxProps> = ({
           <Button key="setOwner" type="link" onClick={owner}>设置群主</Button>
           <Button key="removeMember" type="link" onClick={removeMemberInit}>移除成员</Button>
           <Button key="memberList" type="link" onClick={displayMemberList}>群成员列表</Button>
+          <Button key="withdraw" type="dashed" onClick={withdraw}>退出群聊</Button>
           </div>
+          
           
         </Modal>
 
@@ -422,6 +468,20 @@ const Chatbox: React.FC<ChatboxProps> = ({
                   </List.Item>
                   )}
                   />
+            </Modal>
+
+
+
+          <Modal
+            title="退出群聊"
+            visible={visibleWithdraw}
+            onCancel={handleWithdrawCancel}
+            footer={[
+              <Button key="cancel" onClick={handleWithdrawCancel}>取消</Button>,
+              <Button key="create" type="primary" onClick={handleWithdrawOk}>确定</Button>
+            ]}
+            >
+              <h2>确定退出群聊？</h2>
             </Modal>
 
         {/* 私聊相关Modal TODO */}
