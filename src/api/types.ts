@@ -25,7 +25,7 @@ export type Conversation = {
     memberList: string[];
     isGroup: boolean;
     unreadCount?: number;
-    owner?:string;
+    owner:string;               // 修改：owner?:string -> owner:string 群主不能为空
     adminList?:string[];
     avatar?:string
 };

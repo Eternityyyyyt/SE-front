@@ -5,15 +5,14 @@ import styles from './ChatBox.module.css';
 import MessageBubble from './MessageBubble';
 import { Conversation, Message } from '../api/types';
 import { addMessage } from '../api/chat';
-import { getConversationDisplayName ,getConversationDisplaymemberList} from '../api/utils';
+import { getConversationDisplayName } from '../api/utils';
 import { db } from '../api/db';
 import { RootState } from '@/redux/store';
 import { useSelector } from 'react-redux';
 import {getUserAvatar} from  '../api/utils'
-import { PlusCircleOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
+import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import { getUrl } from '../api/utils';
-import { icons } from 'antd/es/image/PreviewGroup';
 export type ChatboxProps = {
   me: string; // 当前用户
   conversation?: Conversation; // 当前选中的会话 (可能为空)
@@ -83,16 +82,22 @@ const Chatbox: React.FC<ChatboxProps> = ({
       .catch(() => message.error('消息发送失败'))
       .finally(() => setSending(false));
   };
-  const [selectedMembers, setSelectedMembers] = useState<string[]>([]); // 选中的管理员列表
-  const [memberList, setMemberList] = useState<string[]>([]); // 群成员列表
-  const [removeMember, setRemoveMember] = useState(''); // 移除的成员，一次只能删除一个
+
+
+  /*********************************************************/
+  /* Group */
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);   // 选中的管理员列表
+  const [memberList, setMemberList] = useState<string[]>([]);             // 群成员列表
+  const [removeMember, setRemoveMember] = useState('');                   // 移除的成员，一次只能删除一个
   const [isGroup, setIsGroup] = useState(false);
-  const [groupOwner, setGroupOwner] = useState(''); // 群主
-  const [visibleGroup, setVisibleGroup] = useState(false);  // 群聊settings Modal
-  const [visiblePrivate, setVisiblePrivate] = useState(false); // 私聊settings Modal
-  const [visibleAdmin, setVisibleAdmin] = useState(false); // 管理员Modal
-  const [visibleOwner, setVisibleOwner] = useState(false); // 群主Modal
-  const [visibleRemoveMember, setVisibleRemoveMember] = useState(false); // 移除成员Modal
+  const [groupOwner, setGroupOwner] = useState(conversation?.owner);      // 群主
+  const [groupOwnerTmp, setGroupOwnerTmp] = useState('');                 // 群主临时变量，用于转让群主页面的显示
+  const [visibleGroup, setVisibleGroup] = useState(false);                // 群聊settings Modal
+  const [visiblePrivate, setVisiblePrivate] = useState(false);            // 私聊settings Modal
+  const [visibleAdmin, setVisibleAdmin] = useState(false);                // 管理员Modal
+  const [visibleOwner, setVisibleOwner] = useState(false);                // 群主Modal
+  const [visibleRemoveMember, setVisibleRemoveMember] = useState(false);  // 移除成员Modal
+  // 三个点
   const settings = () => {
     if(conversation) {
       setIsGroup(conversation.isGroup);
@@ -101,11 +106,13 @@ const Chatbox: React.FC<ChatboxProps> = ({
       // 清空群管理员选择列表
       setSelectedMembers([]);
       // 加载群主信息
-      if(conversation.owner) {
-        setGroupOwner(conversation.owner);
-      }
+      setGroupOwner(conversation.owner);
+    }
+    else {
+      alert("No conversation?!")
     }
   };
+  // 管理：群为群管理，私聊为好友管理
   const control = () => {
     if(isGroup === true) {
       setVisibleGroup(true);
@@ -119,18 +126,22 @@ const Chatbox: React.FC<ChatboxProps> = ({
   const admin = () => {
     if(groupOwner !== userName) {
       alert("You are not the owner of this group");
+      console.log(groupOwner);
       return;
     } else {
       setVisibleAdmin(true);
+      console.log(conversation?.adminList);
     }
     
   };
   const owner = () => {
     if(groupOwner !== userName) {
       alert("You are not the owner of this group");
+      console.log(groupOwner);
       return;
     } else {
       setVisibleOwner(true);
+      console.log(groupOwner);
     }
     
   };
@@ -144,11 +155,15 @@ const Chatbox: React.FC<ChatboxProps> = ({
     }
     else if(conversation?.owner !== userName) {
       alert("You are not the owner or admin of this group");
+      console.log(groupOwner);
+
       return;
     }
     setVisibleRemoveMember(true);
     
   };
+  /* 取消键函数 */
+  // handleSettingCancel
   const handleCancel = () => {
     setVisibleGroup(false);
     setVisiblePrivate(false);
@@ -158,14 +173,15 @@ const Chatbox: React.FC<ChatboxProps> = ({
     setSelectedMembers([]);
   };
   const handleOwnerCancel = () => {
-    setGroupOwner('');
+    setGroupOwner(conversation?.owner);
+    setGroupOwnerTmp('');
     setVisibleOwner(false);
   };
   const handleRemoveMemberCancel = () => {
     setRemoveMember('');
     setVisibleRemoveMember(false);
   }
-
+  /* 添加键函数 */
   const addAdminMembers = (memberName:string) => {
     if(selectedMembers.includes(memberName)){
       return;
@@ -175,14 +191,14 @@ const Chatbox: React.FC<ChatboxProps> = ({
   };
   const setRemoveMembers = (memberName:string) => {
     setRemoveMember(memberName);
-    
   };
   const removeAdminMembers = (memberName:string) => {
     setSelectedMembers(currentMembers => currentMembers.filter(item => item !== memberName));
   };
-  const setOwner = (member:string) => {
-    setGroupOwner(member);
-  }
+  const setOwnerTmp = (member:string) => {
+    setGroupOwnerTmp(member);
+  };
+  /* 确认键函数 */
   const handleAdminOk = async() => {
     if(selectedMembers.length === 0) {
       return;
@@ -211,6 +227,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
     if(!groupOwner) {
       return;
     }
+    setGroupOwner(groupOwnerTmp);     // 确认改为当前选中者
     const {data} = await axios.post(getUrl('/api/chat/changeOwner'), {
       ownerName: conversation?.owner,
       chat_id: chat_id,
@@ -334,13 +351,13 @@ const Chatbox: React.FC<ChatboxProps> = ({
           ]}
           >
             <p>当前群主为：{conversation?.owner}</p>
-            <p>请选择新的群主</p>
+            <p>请选择新的群主：{groupOwnerTmp}</p>
             <List
               bordered
               dataSource={memberList.filter(item => item !== userName)}
               renderItem={(member, index) => (
                 <List.Item key={index} actions={[
-                  <Button key={("setOwner")} type='dashed' onClick={() => setOwner(member)}><CheckOutlined /></Button>
+                  <Button key={("setOwner")} type='dashed' onClick={() => setOwnerTmp(member)}><CheckOutlined /></Button>
                 ]}
                 >{member}
                 </List.Item>

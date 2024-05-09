@@ -115,10 +115,12 @@ export async function addConversation({ isGroup, memberList}: AddConversationArg
     if(Number(data.code) === 0){
       const chat_id = data.chat_id;
       const isGroup:Boolean = true
+      const owner = createrName;
       return {
         chat_id,
         memberList,
-        isGroup
+        isGroup,
+        owner       // 默认创建群聊的人为群主
       } as Conversation;
     }
     else{
