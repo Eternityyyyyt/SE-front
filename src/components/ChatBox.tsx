@@ -319,16 +319,18 @@ const Chatbox: React.FC<ChatboxProps> = ({
       }
     });
     if(data.code === 0) {
-      setVisibleWithdraw(false);
       // update
       if(conversation?.memberList) {
         conversation.memberList = conversation.memberList.filter(item => item !== userName);
+        // 在数据库中更新
+        // 仍未更新还需debug
+        await db.conversations.update(conversation.chat_id, { memberList: conversation.memberList });
       }
     } else {
       alert("Somethng wrong");
-      setVisibleWithdraw(false);
-      setVisibleGroup(false);
     }
+    setVisibleWithdraw(false);
+    setVisibleGroup(false);
   };
   const menu = (
     <Menu>
