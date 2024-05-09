@@ -1,5 +1,5 @@
 import React, { useRef, useState ,useEffect} from 'react';
-import { Input, Button, Divider, message, Menu, Dropdown, Modal, List } from 'antd';
+import { Input, Button, Divider, message, Menu, Dropdown, Modal, List, Avatar } from 'antd';
 import { useRequest } from 'ahooks';
 import styles from './ChatBox.module.css';
 import MessageBubble from './MessageBubble';
@@ -13,6 +13,7 @@ import {getUserAvatar} from  '../api/utils'
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import { getUrl } from '../api/utils';
+
 export type ChatboxProps = {
   me: string; // 当前用户
   conversation?: Conversation; // 当前选中的会话 (可能为空)
@@ -97,6 +98,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
   const [visibleAdmin, setVisibleAdmin] = useState(false);                // 管理员Modal
   const [visibleOwner, setVisibleOwner] = useState(false);                // 群主Modal
   const [visibleRemoveMember, setVisibleRemoveMember] = useState(false);  // 移除成员Modal
+  const [visibleDisplayMembers, setVisibleDisplayMembers] = useState(false);  // 显示群成员Modal
   // 三个点
   const settings = () => {
     if(conversation) {
@@ -145,6 +147,9 @@ const Chatbox: React.FC<ChatboxProps> = ({
     }
     
   };
+  const displayMemberList = () => {
+    setVisibleDisplayMembers(true);
+  };
   const removeMemberInit = () => {
     // 需要是群主或群管理员才能移除成员
     if(conversation?.adminList) {
@@ -180,6 +185,9 @@ const Chatbox: React.FC<ChatboxProps> = ({
   const handleRemoveMemberCancel = () => {
     setRemoveMember('');
     setVisibleRemoveMember(false);
+  };
+  const handleDisplayCancel = () => {
+    setVisibleDisplayMembers(false);
   }
   /* 添加键函数 */
   const addAdminMembers = (memberName:string) => {
@@ -308,9 +316,13 @@ const Chatbox: React.FC<ChatboxProps> = ({
           <Button key="cancel" onClick={handleCancel}>取消</Button>,
         ]}
         >
-          <Button key="setAdmin" type="primary" onClick={admin}>设置管理员</Button>
-          <Button key="setOwner" type="primary" onClick={owner}>设置群主</Button>
-          <Button key="removeMember" type="primary" onClick={removeMemberInit}>移除成员</Button>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <Button key="setAdmin" type="link" onClick={admin}>设置管理员</Button>
+          <Button key="setOwner" type="link" onClick={owner}>设置群主</Button>
+          <Button key="removeMember" type="link" onClick={removeMemberInit}>移除成员</Button>
+          <Button key="memberList" type="link" onClick={displayMemberList}>群成员列表</Button>
+          </div>
+          
         </Modal>
 
 
@@ -336,6 +348,28 @@ const Chatbox: React.FC<ChatboxProps> = ({
                 <Button key={"remove"} type='dashed' onClick={() => removeAdminMembers(member)}><CloseOutlined /></Button>
             ]}
             >{member}
+            </List.Item>
+            )}
+            />
+        </Modal>
+
+        <Modal
+        title="群成员信息"
+        visible={visibleDisplayMembers}
+        onCancel={handleDisplayCancel}
+        footer={[
+          <Button key="cancel" onClick={handleDisplayCancel}>关闭</Button>,
+          
+        ]}
+        >
+          <List
+            bordered
+            dataSource={memberList}
+            renderItem={(member, index) => (
+            <List.Item key={index} actions={[
+                // 添加好友等操作TODO
+            ]}
+            >{<Avatar src={`..${avatars[member]}`}></Avatar>} {member}
             </List.Item>
             )}
             />
