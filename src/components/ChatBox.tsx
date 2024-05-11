@@ -101,10 +101,9 @@ const Chatbox: React.FC<ChatboxProps> = ({
   const [visibleDisplayMembers, setVisibleDisplayMembers] = useState(false);  // 显示群成员Modal
   const [visibleWithdraw, setVisibleWithdraw] = useState(false);           // 退出群聊确认Modal
   // 三个点
-  // useEffect(() => {
-
-    
-  // },[groupOwner])
+  useEffect(() => {
+    settings();
+  },[conversation])
   const settings = () => {
     if(conversation) {
       setIsGroup(conversation.isGroup);
@@ -116,7 +115,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
       setGroupOwner(conversation.owner);
     }
     else {
-      alert("No conversation?!")
+      console.log("No Selected Conversation");
     }
   };
   // 管理：群为群管理，私聊为好友管理
@@ -244,10 +243,11 @@ const Chatbox: React.FC<ChatboxProps> = ({
     });
     if(data.code === 0) {
       setVisibleAdmin(false);
-      setSelectedMembers([]);
-      if(conversation?.adminList) {
+      if(conversation) {
         conversation.adminList = selectedMembers;
+        db.conversations.update(conversation.chat_id, { adminList: selectedMembers });
       }
+      setSelectedMembers([]);
     } else {
       alert("Somethng wrong");
       setVisibleAdmin(false);
@@ -269,7 +269,10 @@ const Chatbox: React.FC<ChatboxProps> = ({
     });
     if(data.code === 0) {
       if(conversation) {
+        console.log(groupOwnerTmp);
+        await db.conversations.update(conversation.chat_id, { owner: groupOwnerTmp });
         conversation.owner = groupOwnerTmp;
+        setGroupOwner(groupOwnerTmp);
       }
       setVisibleOwner(false);
       setGroupOwnerTmp('');
@@ -300,7 +303,17 @@ const Chatbox: React.FC<ChatboxProps> = ({
       setRemoveMember('');
       // update
       if(conversation?.memberList) {
-        conversation.memberList = conversation.memberList.filter(item => item !== removeMember);
+        const newMemberList = conversation.memberList.filter(item => item !== removeMember);
+        // 更新管理员列表
+        if(conversation.adminList) {
+          const newAdminList = conversation.adminList.filter(item => item !== removeMember);
+          await db.conversations.update(conversation.chat_id, { adminList: newAdminList });
+          setSelectedMembers(newAdminList);
+        }
+        conversation.memberList = newMemberList;
+        // 更新成员列表
+        await db.conversations.update(conversation.chat_id, { memberList: newMemberList });
+        setMemberList(conversation.memberList);
       }
     } else {
       alert("Somethng wrong");
@@ -322,9 +335,10 @@ const Chatbox: React.FC<ChatboxProps> = ({
       // update
       if(conversation?.memberList) {
         conversation.memberList = conversation.memberList.filter(item => item !== userName);
+        console.log(conversation.memberList);
         // 在数据库中更新
-        // 仍未更新还需debug
         await db.conversations.update(conversation.chat_id, { memberList: conversation.memberList });
+        setMemberList(conversation.memberList);
       }
     } else {
       alert("Somethng wrong");

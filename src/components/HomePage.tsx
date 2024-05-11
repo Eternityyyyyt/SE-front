@@ -31,7 +31,10 @@ const HomePage = () => {
     const [lastUpdateTime, setLastUpdateTime] = useState<number>(0);
     const { data: conversations, refresh } = useRequest(async () => {
       const convs = await db.conversations.toArray();
-      return convs.filter((conv) => conv.memberList.includes(userName!));
+      // if (convs.some(conv => !conv.memberList)) {
+      //   alert("Some conversations are missing member list, please refresh the page");
+      // }
+      return convs.filter((conv) => conv.memberList && conv.memberList.includes(userName!));
     }); // 当前用户的会话列表
     const dispatch = useDispatch();
     const update = useCallback(() => {
@@ -112,6 +115,13 @@ const HomePage = () => {
     const handleOk = async() => {
       const newChat = await addConversation({isGroup: true, memberList: selectedMembers}, token);
       if(newChat){
+        // 在数据库中创建该群聊信息
+        db.conversations.add({
+          chat_id: newChat.chat_id,
+          memberList: selectedMembers,
+          isGroup: true,
+          owner: userName,
+        })
         const chatId = newChat.chat_id;
         await db.pullConversations(userName, [chatId], token);
         dispatch(setActiveChat(chatId));
