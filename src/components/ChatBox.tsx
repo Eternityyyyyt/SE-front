@@ -346,6 +346,21 @@ const Chatbox: React.FC<ChatboxProps> = ({
     setVisibleWithdraw(false);
     setVisibleGroup(false);
   };
+  const getMemberIdentity = (member:string) => {
+    if(conversation?.owner === member){return "（群主）"}
+    if(conversation?.adminList?.includes(member)){return "（管理员）"}
+    return ''
+  }
+  const memberListSortFunc = (a:string,b:string) => {
+    if (a === conversation?.owner) return -1;
+    if (b === conversation?.owner) return 1;
+
+    // 管理员排在群主之后
+    if (memberList.includes(a) && !memberList.includes(b)) return -1;
+    if (memberList.includes(b) && !memberList.includes(b)) return 1;
+
+    return a < b ? -1 : 1;
+  }
   const menu = (
     <Menu>
       <Menu.Item>
@@ -377,10 +392,10 @@ const Chatbox: React.FC<ChatboxProps> = ({
         ]}
         >
           <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <Button key="memberList" type="link" onClick={displayMemberList}>群成员列表</Button>
           <Button key="setAdmin" type="link" onClick={admin}>设置管理员</Button>
           <Button key="setOwner" type="link" onClick={owner}>设置群主</Button>
           <Button key="removeMember" type="link" onClick={removeMemberInit}>移除成员</Button>
-          <Button key="memberList" type="link" onClick={displayMemberList}>群成员列表</Button>
           <Button key="withdraw" type="dashed" onClick={withdraw}>退出群聊</Button>
           </div>
           
@@ -426,12 +441,12 @@ const Chatbox: React.FC<ChatboxProps> = ({
         >
           <List
             bordered
-            dataSource={memberList}
+            dataSource={memberList.slice(0).sort(memberListSortFunc)}
             renderItem={(member, index) => (
             <List.Item key={index} actions={[
                 // 添加好友等操作TODO
             ]}
-            >{<Avatar src={`..${avatars[member]}`}></Avatar>} {member}
+            >{<Avatar src={`..${avatars[member]}`}></Avatar>} {member}{getMemberIdentity(member)}
             </List.Item>
             )}
             />
