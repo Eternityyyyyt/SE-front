@@ -1,6 +1,6 @@
 import React, { useRef, useState ,useEffect} from 'react';
 import { Input, Button, Divider, message, Menu, Dropdown, Modal, List, Avatar } from 'antd';
-import { useRequest } from 'ahooks';
+import { useRequest  } from 'ahooks';
 import styles from './ChatBox.module.css';
 import MessageBubble from './MessageBubble';
 import { Conversation, Message } from '../api/types';
@@ -34,6 +34,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
   const messageEndRef = useRef<HTMLDivElement>(null); // 指向消息列表末尾的引用，用于自动滚动
   const token = useSelector((state:RootState) => state.auth.token);
   const userName = useSelector((state:RootState) => state.auth.name);
+  const [currConversation, setCurrConversation] = useState<Conversation | undefined>(conversation);//conversation无法被直接更新，借用新state来更新
   const chat_id = conversation?.chat_id;
   const replying = 0; // 先不引用
   const [avatars, setAvatars] = useState<Record<string, string>>({});
@@ -88,10 +89,10 @@ const Chatbox: React.FC<ChatboxProps> = ({
   /*********************************************************/
   /* Group */
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);   // 选中的管理员列表
-  const [memberList, setMemberList] = useState<string[]>([]);             // 群成员列表
+  //const [memberList, setMemberList] = useState<string[]>([]);             // 群成员列表
   const [removeMember, setRemoveMember] = useState('');                   // 移除的成员，一次只能删除一个
-  const [isGroup, setIsGroup] = useState(false);
-  const [groupOwner, setGroupOwner] = useState(conversation?.owner);      // 群主
+  //const [isGroup, setIsGroup] = useState(false);
+  //const [groupOwner, setGroupOwner] = useState(conversation?.owner);      // 群主
   const [groupOwnerTmp, setGroupOwnerTmp] = useState('');                 // 群主临时变量，用于转让群主页面的显示
   const [visibleGroup, setVisibleGroup] = useState(false);                // 群聊settings Modal
   const [visiblePrivate, setVisiblePrivate] = useState(false);            // 私聊settings Modal
@@ -102,25 +103,27 @@ const Chatbox: React.FC<ChatboxProps> = ({
   const [visibleWithdraw, setVisibleWithdraw] = useState(false);           // 退出群聊确认Modal
   // 三个点
   useEffect(() => {
+    setCurrConversation(conversation)
     settings();
   },[conversation])
   const settings = () => {
     if(conversation) {
-      setIsGroup(conversation.isGroup);
+      //setIsGroup(conversation.isGroup);
       // 加载群成员列表
-      setMemberList(conversation.memberList);
+      //setMemberList(conversation.memberList);
       // 清空群管理员选择列表
       setSelectedMembers([]);
       // 加载群主信息
-      setGroupOwner(conversation.owner);
+      //setGroupOwner(conversation.owner);
     }
     else {
       console.log("No Selected Conversation");
     }
   };
   // 管理：群为群管理，私聊为好友管理
-  const control = () => {
-    if(isGroup === true) {
+  const control = async () => {
+    await db.updateConversation(me,chat_id!,token).then(conv => {if(conv){setCurrConversation((oldconv) => conv)}});
+    if(currConversation?.isGroup === true) {
       setVisibleGroup(true);
       setVisiblePrivate(false);
     }
@@ -129,56 +132,76 @@ const Chatbox: React.FC<ChatboxProps> = ({
       setVisibleGroup(false);
     }
   };
-  const admin = () => {
-    if(groupOwner !== userName) {
+  const admin = async () => {
+    let currOwner = currConversation?.owner;
+    let currAdminList = currConversation?.adminList;
+    await db.updateConversation(me,chat_id!,token).then(
+      conv => { 
+        if(conv){
+          currOwner = conv.owner;
+          currAdminList = conv.adminList; 
+          setCurrConversation((oldconv) => conv)
+        }
+      }
+    );
+    if(currOwner !== userName) {
       alert("You are not the owner of this group");
-      console.log(groupOwner);
+      console.log(currOwner);
       return;
     } else {
       setVisibleAdmin(true);
-      console.log(conversation?.adminList);
+      console.log(currAdminList);
     }
     
   };
-  const owner = () => {
-    if(groupOwner !== userName) {
+  const owner = async () => {
+    let currOwner = currConversation?.owner;
+    await db.updateConversation(me,chat_id!,token).then(conv => {if(conv){currOwner = conv.owner; setCurrConversation((oldconv) => conv)}});
+    //需要currOwner的原因：setcurrconversation执行后curr conversation不会立刻更新
+    if(currOwner !== userName) {
       alert("You are not the owner of this group");
-      console.log(groupOwner);
+      console.log(currConversation);
       return;
     } else {
       setVisibleOwner(true);
-      console.log(groupOwner);
+      console.log(currConversation?.owner);
     }
     
   };
-  const displayMemberList = () => {
+  const displayMemberList = async () => {
+    await db.updateConversation(me,chat_id!,token).then(conv => {if(conv){ setCurrConversation((oldconv) => conv)}});
+    //console.log(chat_id)
     setVisibleDisplayMembers(true);
   };
-  const removeMemberInit = () => {
+  const removeMemberInit = async () => {
+    let currOwner = currConversation?.owner;
+    let currAdminList = currConversation?.adminList;
+    await db.updateConversation(me,chat_id!,token).then(conv => { if(conv){currOwner = conv.owner;currAdminList = conv.adminList; setCurrConversation((oldconv) => conv)}});
     // 需要是群主或群管理员才能移除成员
-    if(conversation?.adminList) {
-      if(!conversation.adminList.includes(userName) && conversation.owner !== userName) {
+    if(currAdminList) {
+      if(!currAdminList.includes(userName) && currOwner !== userName) {
         alert("You are not the owner or admin of this group");
         return;
       }
     }
-    else if(conversation?.owner !== userName) {
+    else if(currOwner !== userName) {
       alert("You are not the owner or admin of this group");
-      console.log(groupOwner);
+      console.log(currOwner);
 
       return;
     }
     setVisibleRemoveMember(true);
     
   };
-  const withdraw = () => {
+  const withdraw = async () => {
     // 判断是否在群中，防止二次退群
-    if(!conversation?.memberList.includes(userName)) {
+    await db.updateConversation(me,chat_id!,token).then(conv => {console.log(conv); setCurrConversation((oldconv) => conv)});
+    if(!currConversation?.memberList.includes(userName)) {
       alert("You are not in this group");
       setVisibleGroup(false);
       return;
     }
-    if(conversation?.owner === userName) {
+    if(currConversation?.owner === userName) {
       alert("You are the owner of this group, change the owner first");
       return;
     } else {
@@ -196,7 +219,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
     setSelectedMembers([]);
   };
   const handleOwnerCancel = () => {
-    setGroupOwner(conversation?.owner);
+    //setGroupOwner(conversation?.owner);
     setGroupOwnerTmp('');
     setVisibleOwner(false);
   };
@@ -244,8 +267,9 @@ const Chatbox: React.FC<ChatboxProps> = ({
     if(data.code === 0) {
       setVisibleAdmin(false);
       if(conversation) {
-        conversation.adminList = selectedMembers;
-        db.conversations.update(conversation.chat_id, { adminList: selectedMembers });
+        //conversation.adminList = selectedMembers;
+        //db.conversations.update(conversation.chat_id, { adminList: selectedMembers });
+        await db.updateConversation(me,chat_id!,token).then(conv => {console.log(conv); setCurrConversation((oldconv) => conv)});
       }
       setSelectedMembers([]);
     } else {
@@ -257,9 +281,9 @@ const Chatbox: React.FC<ChatboxProps> = ({
     if(!groupOwnerTmp) {
       return;
     }
-    setGroupOwner(groupOwnerTmp);     // 确认改为当前选中者
+    //setGroupOwner(groupOwnerTmp);     // 确认改为当前选中者
     const {data} = await axios.post(getUrl('/api/chat/changeOwner'), {
-      ownerName: conversation?.owner,
+      ownerName: currConversation?.owner,
       chat_id: chat_id,
       newOwnerName: groupOwnerTmp
     }, {
@@ -270,9 +294,10 @@ const Chatbox: React.FC<ChatboxProps> = ({
     if(data.code === 0) {
       if(conversation) {
         console.log(groupOwnerTmp);
-        await db.conversations.update(conversation.chat_id, { owner: groupOwnerTmp });
-        conversation.owner = groupOwnerTmp;
-        setGroupOwner(groupOwnerTmp);
+        await db.updateConversation(me,chat_id!,token).then(conv => {console.log(conv); setCurrConversation((oldconv) => conv)});
+        //await db.conversations.update(conversation.chat_id, { owner: groupOwnerTmp });
+        //conversation.owner = groupOwnerTmp;
+        //setGroupOwner(groupOwnerTmp);
       }
       setVisibleOwner(false);
       setGroupOwnerTmp('');
@@ -283,8 +308,8 @@ const Chatbox: React.FC<ChatboxProps> = ({
     
   };
   const handleRemoveMemberOk = async() => {
-    if(conversation?.adminList) {
-      if(userName !== groupOwner && !conversation?.adminList.includes(removeMember)) {
+    if(currConversation?.adminList) {
+      if(userName !== currConversation?.owner && !currConversation?.adminList?.includes(removeMember)) {
         alert("Admin can not remove admin");
         return;
       }
@@ -307,13 +332,14 @@ const Chatbox: React.FC<ChatboxProps> = ({
         // 更新管理员列表
         if(conversation.adminList) {
           const newAdminList = conversation.adminList.filter(item => item !== removeMember);
-          await db.conversations.update(conversation.chat_id, { adminList: newAdminList });
+          //await db.conversations.update(conversation.chat_id, { adminList: newAdminList });
           setSelectedMembers(newAdminList);
         }
-        conversation.memberList = newMemberList;
+        //conversation.memberList = newMemberList;
+        await db.updateConversation(me,chat_id!,token).then(conv => {console.log(conv); setCurrConversation((oldconv) => conv)});
         // 更新成员列表
-        await db.conversations.update(conversation.chat_id, { memberList: newMemberList });
-        setMemberList(conversation.memberList);
+        //await db.conversations.update(conversation.chat_id, { memberList: newMemberList });
+        //setMemberList(conversation.memberList);
       }
     } else {
       alert("Somethng wrong");
@@ -334,11 +360,12 @@ const Chatbox: React.FC<ChatboxProps> = ({
     if(data.code === 0) {
       // update
       if(conversation?.memberList) {
-        conversation.memberList = conversation.memberList.filter(item => item !== userName);
+        //conversation.memberList = conversation.memberList.filter(item => item !== userName);
         console.log(conversation.memberList);
         // 在数据库中更新
-        await db.conversations.update(conversation.chat_id, { memberList: conversation.memberList });
-        setMemberList(conversation.memberList);
+        //await db.conversations.update(conversation.chat_id, { memberList: conversation.memberList });
+        //setMemberList(conversation.memberList);
+        await db.updateConversation(me,chat_id!,token).then(conv => {console.log(conv); setCurrConversation((oldconv) => conv)});
       }
     } else {
       alert("Somethng wrong");
@@ -347,17 +374,18 @@ const Chatbox: React.FC<ChatboxProps> = ({
     setVisibleGroup(false);
   };
   const getMemberIdentity = (member:string) => {
-    if(conversation?.owner === member){return "（群主）"}
-    if(conversation?.adminList?.includes(member)){return "（管理员）"}
+    const isMeSuffix =  me == member ? "（我）" : ""
+    if(currConversation?.owner === member){return `（群主）${isMeSuffix}`}
+    if(currConversation?.adminList?.includes(member)){return `（管理员）${isMeSuffix}`}
     return ''
   }
   const memberListSortFunc = (a:string,b:string) => {
-    if (a === conversation?.owner) return -1;
-    if (b === conversation?.owner) return 1;
+    if (a === currConversation?.owner) return -1;
+    if (b === currConversation?.owner) return 1;
 
     // 管理员排在群主之后
-    if (memberList.includes(a) && !memberList.includes(b)) return -1;
-    if (memberList.includes(b) && !memberList.includes(b)) return 1;
+    if (currConversation?.adminList?.includes(a) && !currConversation?.adminList?.includes(b)) return -1;
+    if (currConversation?.adminList?.includes(b) && !currConversation?.adminList?.includes(b)) return 1;
 
     return a < b ? -1 : 1;
   }
@@ -418,7 +446,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
           </div>
           <List
             bordered
-            dataSource={memberList.filter(item => item !== userName)}
+            dataSource={currConversation?.memberList.filter(item => item !== userName)}
             renderItem={(member, index) => (
             <List.Item key={index} actions={[
                 <Button key={"add"} type='dashed' onClick={() => addAdminMembers(member)}><CheckOutlined /></Button>,
@@ -441,7 +469,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
         >
           <List
             bordered
-            dataSource={memberList.slice(0).sort(memberListSortFunc)}
+            dataSource={currConversation?.memberList.slice(0).sort(memberListSortFunc)}
             renderItem={(member, index) => (
             <List.Item key={index} actions={[
                 // 添加好友等操作TODO
@@ -461,11 +489,11 @@ const Chatbox: React.FC<ChatboxProps> = ({
             <Button key="create" type="primary" onClick={handleOwnerOk}>确定</Button>
           ]}
           >
-            <p>当前群主为：{conversation?.owner}</p>
+            <p>当前群主为：{currConversation?.owner}</p>
             <p>请选择新的群主：{groupOwnerTmp}</p>
             <List
               bordered
-              dataSource={memberList.filter(item => item !== userName)}
+              dataSource={currConversation?.memberList.filter(item => item !== userName)}
               renderItem={(member, index) => (
                 <List.Item key={index} actions={[
                   <Button key={("setOwner")} type='dashed' onClick={() => setOwnerTmp(member)}><CheckOutlined /></Button>
@@ -489,7 +517,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
               <p>请选择要移除的成员：{removeMember}</p>
               <List
                 bordered
-                dataSource={memberList.filter(item => item !== userName)}
+                dataSource={currConversation?.memberList.filter(item => item !== userName)}
                 renderItem={(member, index) => (
                   <List.Item key={index} actions={[
                     <Button key={"add"} type='dashed' onClick={() => setRemoveMembers(member)}><CheckOutlined /></Button>,

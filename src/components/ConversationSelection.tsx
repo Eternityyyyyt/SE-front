@@ -4,8 +4,9 @@ import { MessageOutlined, TeamOutlined } from '@ant-design/icons';
 import styles from './ConversationSelection.module.css';
 import { Conversation } from '../api/types';
 import { getConversationDisplayName,getPrivateConversationDisplayAvatar} from '../api/utils';
-import { db } from '../api/db';
-
+import { db} from '../api/db';
+import { RootState } from '@/redux/store';
+import { useSelector } from 'react-redux';
 
 type ConversationSelectionProps = {
   me: string; // 当前用户
@@ -57,7 +58,7 @@ const ConversationSelection: React.FC<ConversationSelectionProps> = ({
     
   
   const [avatars, setAvatars] = useState<Record<number, string>>({});
-  
+  const token = useSelector((state:RootState) => state.auth.token);
   const [latestMessages, setLatestMessages] = useState<Record<number, string>>({});
   const [latestMessagesTime, setLatestMessagesTime] = useState<Record<number, number>>({});
   const [activeChatID, setActiveChatID] = useState(1)
@@ -113,8 +114,9 @@ const ConversationSelection: React.FC<ConversationSelectionProps> = ({
     };
     fetchAvatars()
   }, [activeChatID,conversations.length]);
-  const selectchat = (chat_id:number) => {
+  const selectchat = async (chat_id:number) => {
     setActiveChatID(chat_id)
+    await db.updateConversation(me,chat_id,token);
     onSelect(chat_id)
   }
   //conversations.sort((a,b) => latestMessagesTime[b.chat_id] - latestMessagesTime[a.chat_id])s

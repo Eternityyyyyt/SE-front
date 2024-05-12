@@ -51,6 +51,13 @@ export class CachedData extends Dexie {
       await this.conversations.bulkPut(newConversations); // 使用bulkPut方法批量更新本地缓存
     }
   }
+  async updateConversation(me:string , convId: number,token:string) {
+    if (convId) {
+      const newConversations = await getConversations({userName:me, idList: [convId] },token); // 从服务器批量获取会话信息
+      await this.conversations.update(convId,newConversations[0]); // 使用bulkPut方法批量更新本地缓存
+      return newConversations[0];
+    }
+  }
   // 根据新消息批量更新会话的未读计数
   async updateUnreadCounts(messages: Message[]) {
     const conversationIds = messages.map((message) => message.chat_id);
