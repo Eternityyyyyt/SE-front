@@ -13,7 +13,11 @@
     height: calc(100% - 155px);
     overflow: auto;
   }
-  
+  .messages_haveReplyBubble {
+    padding: 20px;
+    height: calc(100% - 195px);
+    overflow: auto;
+  }
   .input {
     border-radius: 0;
     border: none;
@@ -34,4 +38,23 @@
   .settings {
     float: right;
   }
-  
+  .replyBubble{
+    width: auto;
+    height: 30px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 6px; /* 添加这一行来让角更圆润 */
+    padding: 6px 10px;
+    max-width: 60%;
+    margin:5px;
+    color: #595959; /* 浅灰色文本颜色 */
+    font-size: 14px; /* 设置字体大小为14px */
+  }
+  .cancelButton{
+    width: auto;
+    height: 30px;
+    border: 1px solid #ccc;
+    border-radius: 6px; /* 添加这一行来让角更圆润 */
+    margin:5px;
+
+  }

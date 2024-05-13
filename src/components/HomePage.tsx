@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback} from 'react';
 import { Message, Conversation } from '../api/types';
 import { db } from '../api/db';
 import styles from './HomePage.module.css';
-import { addConversation,useMessageListener, } from '../api/chat';
+import { addConversation,useMessageListener,readMessage } from '../api/chat';
 import { RootState } from '@/redux/store';
 import { useSelector } from 'react-redux';
 import ConversationSelection from './ConversationSelection';
@@ -181,7 +181,7 @@ const HomePage = () => {
             <ConversationSelection // 会话选择组件
               me={userName}
               conversations={conversations || []}
-              onSelect={(id) => dispatch(setActiveChat(id))}
+              onSelect={(id) => {dispatch(setActiveChat(id));readMessage(userName,id,Date.now(),token)}}
             />
           </div>
         </div>

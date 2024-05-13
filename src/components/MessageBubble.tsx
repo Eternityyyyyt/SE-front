@@ -7,6 +7,7 @@ import { RootState } from "@/redux/store";
 import type { MenuProps } from 'antd';
 import { Dropdown, theme ,Modal , Button} from 'antd';
 import { db} from '../api/db';
+import {getMessageReadStatus} from '../api/chat'
 export type MessageBubbleProps = {
   message_id:number;
   sender: string; // 消息发送者
@@ -14,6 +15,11 @@ export type MessageBubbleProps = {
   timestamp: number; // 消息时间戳
   isMe: boolean; // 判断消息是否为当前用户发送
   avatarPath:string//头像
+  setReplying:any,
+  replyingContent:string,
+  repliedCount:number,
+  scrollToReply:any,
+  replying:number
 };
 
 // 消息气泡组件
@@ -24,6 +30,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   timestamp,
   isMe,
   avatarPath,
+  setReplying,
+  replyingContent,
+  repliedCount,
+  scrollToReply,
+  replying
 }) => {
   const [shouldRender, setShouldRender] = useState(true);
   const seconds = Math.floor(timestamp);
@@ -34,9 +45,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     minute: '2-digit',
     second: '2-digit',
   });
-  const my_avatar = useSelector((state:RootState) => state.auth.avatar);
-  const my_avatarPath:string = `..${my_avatar}`;
+  const token = useSelector((state:RootState) => state.auth.token);
+  const userName = useSelector((state:RootState) => state.auth.name);
   const [visibleReadMembers,setVisibleReadMembers] = useState(false)
+  const [readMemberList,setReadMemberList] = useState<string[]>([])
   if(!shouldRender){return null;}
   const items: MenuProps['items'] = [
     {
@@ -48,17 +60,34 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
       key: '2',
     },
     {
-      label: '查看已读成员',
+      label: '查看详细',
       key: '3',
     },
   ];
+  const replyMenu: MenuProps['items'] = [
+    {
+      label: '定位到原文位置',
+      key: '4',
+    },
+    
+  ];
+  
   const handleMenuClick: MenuProps['onClick'] = async (e) => {
+    if (e.key === '1') {
+      setReplying(message_id);
+    }
     if (e.key === '2') {
       await db.messages.update(message_id,{deleted:true});
       setShouldRender(false);
     }
     if (e.key === '3') {
+      await getMessageReadStatus(userName,message_id,token)
+      .then((list) => setReadMemberList(list))
+
       setVisibleReadMembers(true)
+    }
+    if (e.key === '4'){
+      scrollToReply(replying)
     }
 
   };
@@ -80,16 +109,25 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         >
           {content} {/* 显示消息内容 */}
         </div>
-      </Dropdown>
+        </Dropdown>
+        {!replyingContent ? null :
+          <Dropdown menu={{ items:replyMenu,onClick: handleMenuClick, }} trigger={['click']}>
+            <div
+              className={`${styles.replyBubble}`}
+            >
+              {replyingContent} {/* 显示消息内容 */}
+            </div>
+          </Dropdown>
+        }
       <Modal
-          title="已读成员列表"
+          title="消息详细信息"
           visible={visibleReadMembers}
           onCancel={() => setVisibleReadMembers(false)}
           footer={[
             <Button key="cancel" onClick={() => setVisibleReadMembers(false)}>关闭</Button>,
           ]}
-          >已读成员列表
-            
+          ><div>已读成员：{readMemberList.join(',')}</div>
+            <div>该消息被回复次数：{repliedCount}</div>
         </Modal>
     </div>
   );

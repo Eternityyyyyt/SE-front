@@ -33,14 +33,14 @@ const Chatbox: React.FC<ChatboxProps> = ({
   const [sendingRequest,setSendingRequest] = useState(false);
   const [inputValue, setInputValue] = useState(''); // 控制输入框的值
   const messageEndRef = useRef<HTMLDivElement>(null); // 指向消息列表末尾的引用，用于自动滚动
+  const messageRefs = useRef(new Map())
   const token = useSelector((state:RootState) => state.auth.token);
   const userName = useSelector((state:RootState) => state.auth.name);
   const [currConversation, setCurrConversation] = useState<Conversation | undefined>(conversation);//conversation无法被直接更新，借用新state来更新
   const chat_id = conversation?.chat_id;
-  const replying = 0; // 先不引用
+  const [replying,setReplying] = useState(0); // 引用的message_id
   const [avatars, setAvatars] = useState<Record<string, string>>({});
   const [friendAvatars, setFriendAvatars] = useState<Record<string, string>>({});
-  const firstUpdate = useRef(true);
   useEffect(() => {
     const fetchAvatars = async () => {
       const newAvatars:Record<string, string>= {};
@@ -69,6 +69,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
           behavior: curMessages.length > 0 ? 'smooth' : 'instant', // 根据消息数量选择滚动方式 (平滑滚动 / 瞬间跳转)
         });
       }, 10);
+
       return cachedMessagesRef.current; // 返回更新后的消息列表
     },
     { refreshDeps: [conversation, lastUpdateTime] }
@@ -86,9 +87,26 @@ const Chatbox: React.FC<ChatboxProps> = ({
     addMessage({userName, chat_id, content, replying},token) // 调用API发送消息
       .then(() => setInputValue(''))
       .catch(() => message.error('消息发送失败'))
-      .finally(() => setSending(false));
+      .finally(() =>{ 
+        setSending(false);
+        db.messages.where('message_id').equals(replying).modify((message) =>{
+          message.repliedCount++;
+        });
+        setReplying(0);
+      });
   };
 
+  // const messageRefs = messages?.reduce((acc:any, msg) => {
+  //   acc[msg.message_id] = useRef<HTMLDivElement>(null);
+  //   return acc;
+  // }, {});
+  const scrollToMessage = (messageId:number) => {
+    const ref = messageRefs.current.get(messageId);
+
+      if (ref) {
+        ref.scrollIntoView({ behavior: 'smooth' ,block: 'end',});
+      }
+  };
 
   /*********************************************************/
   /* Group */
@@ -168,14 +186,9 @@ const Chatbox: React.FC<ChatboxProps> = ({
   },[visibleGroup])
 
   const settings = () => {
+    setReplying(0)
     if(conversation) {
-      //setIsGroup(conversation.isGroup);
-      // 加载群成员列表
-      //setMemberList(conversation.memberList);
-      // 清空群管理员选择列表
       setSelectedMembers([]);
-      // 加载群主信息
-      //setGroupOwner(conversation.owner);
     }
     else {
       console.log("No Selected Conversation");
@@ -768,6 +781,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
           ]}
           >
             <Input.TextArea
+              placeholder='输入好友验证信息'
               className={styles.input}
               value={requestMessage}
               onChange={(e) => setRequestMessage(e.target.value)}
@@ -836,31 +850,64 @@ const Chatbox: React.FC<ChatboxProps> = ({
 
       
 
-
-      <div className={styles.messages}>
+      {/* <div>{replying!== 0 ?  messages?.filter((msg) => msg.message_id === replying)[0]?.content : ''}</div> */}
+      <div className={replying ? styles.messages_haveReplyBubble : styles.messages}>
         {/* 消息列表容器 */}
         {messages?.filter((msg) => !msg.deleted).map((item) => (
-          <MessageBubble key={item.message_id} isMe={item.sender == me} timestamp={item.created_time} avatarPath={`..${avatars[item.sender]}`}{...item} /> // 渲染每条消息为MessageBubble组件
+          <div ref = {(el) => {
+            if (el) {
+              messageRefs.current.set(item.message_id, el);
+            }
+          }}>
+          <MessageBubble 
+          key={item.message_id} 
+          isMe={item.sender == me} 
+          timestamp={item.created_time} 
+          avatarPath={`..${avatars[item.sender]}`}
+          setReplying={setReplying}
+          scrollToReply = {scrollToMessage}
+          replyingContent= {item.replying===0 ? '' : 
+            messages.filter((msg) => msg.message_id === item.replying)
+              .map((msg) => {
+                return `${msg.sender}：${msg.content}`
+              })[0]
+          }
+          {...item} />
+          </div>
         ))}
         <div ref={messageEndRef} /> {/* 用于自动滚动到消息列表底部的空div */}
       </div>
       {conversation && (
         <>
+          {replying ? <div style={{display: 'flex'}}><div className={styles.replyBubble}>
+            {messages?.filter((msg) => msg.message_id === replying)
+              .map((msg) => {
+                return `${msg.sender}：${msg.content}`
+              })[0]}
+          </div>  <Button 
+          onClick={() => {setReplying(0)}} 
+          className={styles.cancelButton}
+          shape='circle' >
+            <CloseOutlined />
+          </Button>
+          </div>: null}
+         
           <Input.TextArea
             className={styles.input}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onPressEnter={(e) => {
               if (!e.shiftKey && !e.ctrlKey) {
-                e.preventDefault(); // 阻止默认事件
-                e.stopPropagation(); // 阻止事件冒泡
+                e.preventDefault();
+                e.stopPropagation();
                 sendMessage();
               }
             }}
             rows={3}
-            autoSize={false} // 关闭自动调整大小
-            readOnly={sending} // 当正在发送消息时，设置输入框为只读
+            autoSize={false}
+            readOnly={sending}
           />
+         
           <Button
             className={styles.submitButton}
             type="primary"

@@ -226,3 +226,42 @@ export const useMessageListener = (fn: () => void, me: string) => {
     };
   }, [me, fn]); // 当前用户(me)或回调函数(fn)变化时，重新执行Effect
 };
+
+export async function readMessage( userName:string, chat_id:number,after:number ,token:string) {
+  let info:string=''
+  try{
+    const { data } = await axios.post(getUrl('/api/chat/readMessage'), {
+      userName: userName,
+      chat_id: chat_id,
+      after:after
+    }, {
+      headers: {
+        'Authorization': `${token}`
+      }
+    });
+    info = data.info
+    return;
+  }catch (error) {
+    console.log(info);
+  }
+  return;
+}
+export async function getMessageReadStatus( userName:string, message_id:number,token:string) {
+  let info:string=''
+  try{
+    const { data } = await axios.get(getUrl("/api/chat/messageReadStatus"), {
+      headers: {
+        Authorization: `${token}`
+      },
+      params: {
+        userName: userName,   
+        message_id: message_id,     
+      },
+    });
+    info = data.info
+    return data.data as string[];
+  }catch (error) {
+    console.log(info);
+  }
+  return []
+}

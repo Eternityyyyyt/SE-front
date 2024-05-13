@@ -40,4 +40,17 @@
   .othersBubble {
     background-color: #fff;
   }
-  
+
+  .replyBubble{
+    height: 30px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+    border-radius: 6px; /* 添加这一行来让角更圆润 */
+    padding: 6px 10px;
+    max-width: 60%;
+    margin-top: 2px;
+    color: #595959; /* 浅灰色文本颜色 */
+    font-size: 14px; /* 设置字体大小为14px */
+  }
