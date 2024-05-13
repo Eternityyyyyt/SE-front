@@ -394,7 +394,7 @@ const FriendList = () => {
                 dataSource={friendDataList}
                 renderItem={(item, index)=>(
                     <List.Item key={index} actions={[
-                        <Button onClick={()=>{
+                        <Button key="new" onClick={()=>{
                             if(!selectedNewFriendList.includes(item.userName)) {
                                 setSelectedNewFriendList([...selectedNewFriendList, item.userName])
                             }
@@ -421,7 +421,7 @@ const FriendList = () => {
                 dataSource={friendDataList}
                 renderItem={(item, index) => (
                     <List.Item key={index} actions={[
-                        <Button onClick={()=>{
+                        <Button key='remove' onClick={()=>{
                             if(!selectedRemoveFriendList.includes(item.userName)) {
                                 setSelectedRemoveFriendList([...selectedRemoveFriendList, item.userName])
                             }
@@ -472,7 +472,7 @@ const FriendList = () => {
                 dataSource={friendTagList}
                 renderItem={(item, index)=>(
                     <List.Item key={item.tag_id} actions={[
-                        <Button onClick={()=>editTag(item)}>编辑</Button>
+                        <Button key='edit' onClick={()=>editTag(item)}>编辑</Button>
                     ]}>
                        <b>{item.tagName}</b>: {item.inTagUserList.join(', ')}
                     </List.Item>
@@ -495,7 +495,7 @@ const FriendList = () => {
                 dataSource={friendTagList}
                 renderItem={(item, index)=>(
                     <List.Item key={item.tag_id} actions={[
-                        <Button type='dashed' onClick={()=>setSelectedDeleteTag(item.tagName)}>选择</Button>
+                        <Button key='set' type='dashed' onClick={()=>setSelectedDeleteTag(item.tagName)}>选择</Button>
                     ]}>
                        <b>{item.tagName}</b>: {item.inTagUserList.join(', ')}
                     </List.Item>
