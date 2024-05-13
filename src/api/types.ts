@@ -29,3 +29,12 @@ export type Conversation = {
     adminList?:string[];
     avatar?:string
 };
+
+export type GroupInvitation = {
+    invitation_id:number;
+    chat_id:number;
+    invitor:string;
+    invitee:string;
+    created_time:number;
+    status :number;
+}

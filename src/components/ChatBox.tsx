@@ -1,18 +1,16 @@
 import React, { useRef, useState ,useEffect} from 'react';
-import { Input, Button, Divider, message, Menu, Dropdown, Modal, List, Avatar } from 'antd';
+import { Input, Button, Divider, message, Menu, Dropdown, Modal, List, Avatar  } from 'antd';
+import { MessageOutlined, TeamOutlined ,PlusCircleOutlined ,CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import { useRequest  } from 'ahooks';
 import { useRouter } from "next/router";
 import styles from './ChatBox.module.css';
 import MessageBubble from './MessageBubble';
-import { Conversation, Message } from '../api/types';
+import { Conversation, Message ,GroupInvitation} from '../api/types';
 import { addMessage } from '../api/chat';
-import { getConversationDisplayName } from '../api/utils';
+import { getConversationDisplayName ,getUserAvatar ,getUrl , formattime} from '../api/utils';
 import { db } from '../api/db';
 import { RootState } from '@/redux/store';
-import {getUserAvatar} from  '../api/utils'
-import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import axios from 'axios';
-import { getUrl } from '../api/utils';
 import { useDispatch, useSelector } from 'react-redux';
 import { setFriendName,setFriendNickname, setFriendAvatar } from '@/redux/friend';
 
@@ -41,18 +39,19 @@ const Chatbox: React.FC<ChatboxProps> = ({
   const chat_id = conversation?.chat_id;
   const replying = 0; // 先不引用
   const [avatars, setAvatars] = useState<Record<string, string>>({});
+  const [friendAvatars, setFriendAvatars] = useState<Record<string, string>>({});
   useEffect(() => {
     const fetchAvatars = async () => {
       const newAvatars:Record<string, string>= {};
-      if(conversation){
-        for (const member of conversation.memberList) {
+      if(currConversation){
+        for (const member of currConversation?.memberList) {
             newAvatars[member] = await getUserAvatar(member, me);
         }
       }
       setAvatars(newAvatars);
     };
     fetchAvatars();
-  }, [conversation?.chat_id]);
+  }, [conversation?.chat_id,currConversation?.chat_id,currConversation?.memberList]);
 
   // 使用ahooks的useRequest钩子从IndexedDB异步获取消息数据，依赖项为lastUpdateTime
   const { data: messages } = useRequest(
@@ -105,16 +104,65 @@ const Chatbox: React.FC<ChatboxProps> = ({
   const [visibleDisplayMembers, setVisibleDisplayMembers] = useState(false);  // 显示群成员Modal
   const [visibleWithdraw, setVisibleWithdraw] = useState(false);           // 退出群聊确认Modal
   const [visibleAddFriend, setVisibleAddFriend] = useState(false);           // 添加好友填写信息Modal
+  const [visibleInviteFriend, setVisibleInviteFriend] = useState(false); //邀请好友modal
+  const [visibleGroupInvitationList, setVisibleGroupInvitationList] = useState(false);           // 添加好友填写信息Modal
   const [friendList , setFriendList] = useState<string[]>([])
   const [requestMessage , setRequestMessage] = useState('');
   const [memberToAddFriend,setMemberToAddFriend] = useState('');
+  const [groupInvitationList,setGroupInvitaionList] = useState<GroupInvitation[]>([])
   const dispatch = useDispatch();
   const router = useRouter()
   // 三个点
+  
   useEffect(() => {
     setCurrConversation(conversation)
     settings();
   },[conversation])
+  useEffect(() =>{
+    const fetchFriendAvatars = async () => {
+      const newAvatars:Record<string, string>= {};
+      if(friendList){
+        for (const friend of friendList) {
+          if (!(friend in avatars))
+            newAvatars[friend] = await getUserAvatar(friend, me);
+        }
+      }
+      setFriendAvatars(newAvatars);
+    };
+    fetchFriendAvatars();
+  },[visibleDisplayMembers])
+  const fetchGroupInvitationList = async () => {
+    const {data} = await axios.get(getUrl('/api/chat/groupInvitation'), {
+    headers: {
+      Authorization: `${token}`
+    },
+    params: {
+      userName: userName,   
+      chat_id: chat_id,     
+    },
+    });
+    if(data.code === 0) {
+      setGroupInvitaionList( data.data.map((obj:any) =>{
+        return {
+          invitation_id: obj.invitation_id,
+          chat_id: chat_id,
+          invitor: obj.invitorName,
+          invitee: obj.inviteeName,
+          created_time: obj.created_time,
+          status: obj.status,
+        } as GroupInvitation
+        }
+      ))
+    } else {
+      alert(data.info);
+    }
+  };
+  useEffect(() =>{
+    if(currConversation?.adminList?.includes(userName) || currConversation?.owner == userName){
+      fetchGroupInvitationList();
+    }
+  },[visibleGroup])
+
   const settings = () => {
     if(conversation) {
       //setIsGroup(conversation.isGroup);
@@ -291,6 +339,32 @@ const Chatbox: React.FC<ChatboxProps> = ({
   const setOwnerTmp = (member:string) => {
     setGroupOwnerTmp(member);
   };
+  const inviteFriend = async (friend:string) => {
+    const {data} = await axios.post(getUrl('/api/chat/invite'), {
+      userName: userName,
+      chat_id: chat_id,
+      inviteeList: [friend]
+    }, {
+      headers: {
+          'Authorization': `${token}`
+      }
+    });
+    if(data.code === 0) {
+      if(conversation) {
+        await db.updateConversation(me,chat_id!,token).then(conv => {console.log(conv); setCurrConversation((oldconv) => conv)});
+      }
+      if (currConversation?.adminList?.includes(userName) || currConversation?.owner == userName){
+        alert(`Successfully invite ${friend} to chat`)
+      }
+      else{
+        alert(`Successfully invite ${friend} to chat, please wait for the owner or admin to accept.`)
+      }
+      setVisibleInviteFriend(false);
+    } else {
+      alert("Something wrong");
+      setVisibleInviteFriend(false);
+    }
+  }
   /* 确认键函数 */
   const handleAdminOk = async() => {
     if(selectedMembers.length === 0) {
@@ -464,7 +538,24 @@ const Chatbox: React.FC<ChatboxProps> = ({
     setSendingRequest(false)
     
   }
-
+  const handleGroupInvitation = async (invt:GroupInvitation ,accept:Boolean) => {
+    const {data} = await axios.post(getUrl('/api/chat/groupInvitation'), {
+      userName: userName,
+      invitation_id: invt.invitation_id,
+      accept:accept
+    }, {
+      headers: {
+        'Authorization': `${token}`
+      }
+    });
+    if(data.code === 0) {
+      fetchGroupInvitationList();
+      await db.updateConversation(me,chat_id!,token).then(conv => {console.log(conv); setCurrConversation((oldconv) => conv)});
+      alert(`Successfully ${accept ? `accepted` : `refused`} group invitation`)
+    } else {
+      alert(data.info);
+    }
+  }
   const getMemberIdentity = (member:string) => {
     const isMeSuffix =  me == member ? "（我）" : ""
     if(currConversation?.owner === member){return `（群主）${isMeSuffix}`}
@@ -518,10 +609,11 @@ const Chatbox: React.FC<ChatboxProps> = ({
         >
           <div style={{ display: 'flex', flexDirection: 'column' }}>
           <Button key="memberList" type="link" onClick={displayMemberList}>群成员列表</Button>
-          <Button key="setAdmin" type="link" onClick={admin}>设置管理员</Button>
-          <Button key="setOwner" type="link" onClick={owner}>设置群主</Button>
-          <Button key="removeMember" type="link" onClick={removeMemberInit}>移除成员</Button>
-          <Button key="withdraw" type="dashed" onClick={withdraw}>退出群聊</Button>
+          <Button key="setAdmin" type="link" onClick={admin}  disabled = {!(currConversation?.owner == userName)}>设置管理员</Button>
+          <Button key="setOwner" type="link" onClick={owner}  disabled = {!(currConversation?.owner == userName)}>设置群主</Button>
+          <Button key="removeMember" type="link" onClick={removeMemberInit} disabled = {!(currConversation?.adminList?.includes(userName) || currConversation?.owner == userName)}>移除成员</Button>
+          <Button key="groupInvitation" type="link" onClick={() => setVisibleGroupInvitationList(true)} disabled = {!(currConversation?.adminList?.includes(userName) || currConversation?.owner == userName)}>查看入群邀请</Button>
+          <Button key="withdraw" type="dashed"  onClick={withdraw} style={{ color: 'red' }}>退出群聊</Button>
           </div>
           
           
@@ -538,7 +630,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
         ]}
         >
           <div>
-            <p>当前群管理员：{conversation?.adminList ? conversation.adminList.join(', ') : 'None'}</p>
+            <p>当前群管理员：{currConversation?.adminList ? currConversation.adminList.join(', ') : 'None'}</p>
             <p>请选择要设置为群管理员的成员：{selectedMembers.join(', ')}</p>
           </div>
           <List
@@ -553,7 +645,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
             </List.Item>
             )}
             />
-        </Modal>
+      </Modal>
 
         <Modal
         title="群成员信息"
@@ -568,9 +660,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
             bordered
             dataSource={currConversation?.memberList.slice(0).sort(memberListSortFunc)}
             renderItem={(member, index) => (
-            <List.Item key={index} actions={[
-                // 添加好友等操作TODO
-            ]}
+            <List.Item key={index} actions={[]}
             >{<Avatar src={`..${avatars[member]}`}></Avatar>} {member}{getMemberIdentity(member)}
             { member !== me ? (friendList.includes(member) ?  <Button  onClick={() => goToFriendData(member,avatars[member])}
             style={{ float: 'right',  margin: '0 10px',}}>
@@ -582,8 +672,39 @@ const Chatbox: React.FC<ChatboxProps> = ({
             }
             </List.Item>
             )}
+
             />
+            <Button onClick={() => setVisibleInviteFriend(true)} icon={( <PlusCircleOutlined /> )} style = {{  margin: '10px 0'} }/>
         </Modal>
+
+
+        <Modal
+        title="邀请好友"
+        visible={visibleInviteFriend}
+        onCancel={() => setVisibleInviteFriend(false)}
+        footer={[
+          <Button key="cancel" onClick={() => setVisibleInviteFriend(false)}>关闭</Button>,
+          
+        ]}
+        >
+          <List
+            bordered
+            dataSource={friendList.slice(0).sort((a:string ,b:string) => {return a < b ? -1 : 1})}
+            renderItem={(friend) => (
+            <List.Item key={friend} actions={[]}
+            >{<Avatar src={currConversation?.memberList.includes(friend) ? `..${avatars[friend]}` :`..${friendAvatars[friend]}`}></Avatar>} {friend}
+            { friend !== me ? (currConversation?.memberList.includes(friend) ?  <Button disabled={true}
+            style={{ float: 'right',  margin: '0 10px',}}>
+              {'已在群中'}</Button> : <Button onClick={() => {inviteFriend(friend)}}
+            style={{ float: 'right',  margin: '0 10px',}}>
+              {'邀请入群'}</Button>
+            ): null
+            }
+            </List.Item>
+            )}
+
+            />
+        </Modal>     
 
         <Modal
           title="设置群主"
@@ -607,58 +728,93 @@ const Chatbox: React.FC<ChatboxProps> = ({
                 </List.Item>
                 )}
                 />
+        </Modal>
+
+
+        <Modal
+          title="移除成员"
+          visible={visibleRemoveMember}
+          onCancel={handleRemoveMemberCancel}
+          footer={[
+            <Button key="cancel" onClick={handleRemoveMemberCancel}>取消</Button>,
+            <Button key="create" type="primary" onClick={handleRemoveMemberOk}>确定</Button>
+          ]}
+          >
+            <p>请选择要移除的成员：{removeMember}</p>
+            <List
+              bordered
+              dataSource={currConversation?.memberList.filter(item => item !== userName)}
+              renderItem={(member, index) => (
+                <List.Item key={index} actions={[
+                  <Button key={"add"} type='dashed' onClick={() => setRemoveMembers(member)}><CheckOutlined /></Button>,
+
+                ]}
+                >{member}
+                </List.Item>
+                )}
+                />
           </Modal>
-
-
-          <Modal
-            title="移除成员"
-            visible={visibleRemoveMember}
-            onCancel={handleRemoveMemberCancel}
-            footer={[
-              <Button key="cancel" onClick={handleRemoveMemberCancel}>取消</Button>,
-              <Button key="create" type="primary" onClick={handleRemoveMemberOk}>确定</Button>
-            ]}
-            >
-              <p>请选择要移除的成员：{removeMember}</p>
-              <List
-                bordered
-                dataSource={currConversation?.memberList.filter(item => item !== userName)}
-                renderItem={(member, index) => (
-                  <List.Item key={index} actions={[
-                    <Button key={"add"} type='dashed' onClick={() => setRemoveMembers(member)}><CheckOutlined /></Button>,
-
-                  ]}
-                  >{member}
-                  </List.Item>
-                  )}
-                  />
-            </Modal>
-          <Modal
-            title="请填写好友验证信息"
-            visible={visibleAddFriend}
-            onCancel={handleAddFriendCancel}
-            footer={[
-              <Button key="cancel" onClick={handleAddFriendCancel}  disabled={sendingRequest}loading={sendingRequest} >取消</Button>,
-              <Button key="create" type="primary" onClick={handleAddFriendOk}  disabled={sendingRequest}loading={sendingRequest} >确定</Button>
-            ]}
-            >
-              <Input.TextArea
-                className={styles.input}
-                value={requestMessage}
-                onChange={(e) => setRequestMessage(e.target.value)}
-                onPressEnter={(e) => {
-                  if (!e.shiftKey && !e.ctrlKey) {
-                    e.preventDefault(); // 阻止默认事件
-                    e.stopPropagation(); // 阻止事件冒泡
-                    handleAddFriendOk();
-                  }
-                }}
-                rows={3}
-                autoSize={false} // 关闭自动调整大小
-                readOnly={sendingRequest} // 当正在发送消息时，设置输入框为只读
+        <Modal
+          title="请填写好友验证信息"
+          visible={visibleAddFriend}
+          onCancel={handleAddFriendCancel}
+          footer={[
+            <Button key="cancel" onClick={handleAddFriendCancel}  disabled={sendingRequest}loading={sendingRequest} >取消</Button>,
+            <Button key="create" type="primary" onClick={handleAddFriendOk}  disabled={sendingRequest}loading={sendingRequest} >确定</Button>
+          ]}
+          >
+            <Input.TextArea
+              className={styles.input}
+              value={requestMessage}
+              onChange={(e) => setRequestMessage(e.target.value)}
+              onPressEnter={(e) => {
+                if (!e.shiftKey && !e.ctrlKey) {
+                  e.preventDefault(); // 阻止默认事件
+                  e.stopPropagation(); // 阻止事件冒泡
+                  handleAddFriendOk();
+                }
+              }}
+              rows={3}
+              autoSize={false} // 关闭自动调整大小
+              readOnly={sendingRequest} // 当正在发送消息时，设置输入框为只读
+            />
+        </Modal>
+        <Modal
+          title="入群邀请"
+          visible={visibleGroupInvitationList}
+          onCancel={()=>{setVisibleGroupInvitationList(false)}}
+          footer={[
+            <Button key="cancel" onClick={()=>{setVisibleGroupInvitationList(false)}}>关闭</Button>,
+          ]}
+          >
+            <List
+              bordered
+              dataSource={groupInvitationList.slice(0).sort((a,b)=>{return b.created_time-a.created_time})}
+              renderItem={(groupInvitation, index) => (
+              <List.Item key={index}
+              actions={groupInvitation.status === 0  ?
+                [
+                  <Button key={"add"} type='dashed' onClick={() =>{handleGroupInvitation(groupInvitation,true)}}><CheckOutlined /></Button>,
+                  <Button key={"remove"} type='dashed' onClick={() => {handleGroupInvitation(groupInvitation,false)}}><CloseOutlined /></Button>
+                ] :
+                ( groupInvitation.status === 1 ? 
+                  [<Button key={"remove"} type='dashed' disabled>已加入</Button>] :
+                  [<Button key={"remove"} type='dashed' disabled>已拒绝</Button>]
+                )
+              }
+              >
+                <List.Item.Meta 
+                title={`${groupInvitation.invitor}邀请${groupInvitation.invitee}加入群聊`}
+                avatar = {<Avatar icon={(<MessageOutlined/>)}/>}
+                description = {
+                  `邀请时间：${formattime(groupInvitation.created_time)}`
+                }
+               >
+                </List.Item.Meta>
+              </List.Item>
+              )}
               />
           </Modal>
-
           <Modal
             title="退出群聊"
             visible={visibleWithdraw}

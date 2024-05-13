@@ -197,7 +197,7 @@ export const useMessageListener = (fn: () => void, me: string) => {
 
       ws.onclose = () => {
         console.log('WebSocket Disconnected');
-        console.log('Attempting to reconnect...');
+        if(toReconnect){console.log('Attempting to reconnect...');}
         setTimeout(() => {
           if(toReconnect)connect(); // 当WebSocket连接关闭时，尝试重新连接
         }, 1000);
