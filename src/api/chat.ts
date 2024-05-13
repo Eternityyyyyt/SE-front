@@ -178,7 +178,7 @@ export async function getConversations({ userName, idList,}: GetConversationsArg
 export const useMessageListener = (fn: () => void, me: string) => {
   useEffect(() => {
     let ws: WebSocket | null = null;
-
+    let toReconnect:boolean = true;
     const connect = () => {
       ws = new WebSocket(
         getUrl(`ws/?username=${me}`).replace('http://', 'ws://').replace('https://','wss://') // 将http协议替换为ws协议，用于WebSocket连接
@@ -199,7 +199,7 @@ export const useMessageListener = (fn: () => void, me: string) => {
         console.log('WebSocket Disconnected');
         console.log('Attempting to reconnect...');
         setTimeout(() => {
-          connect(); // 当WebSocket连接关闭时，尝试重新连接
+          if(toReconnect)connect(); // 当WebSocket连接关闭时，尝试重新连接
         }, 1000);
       };
     };
@@ -208,6 +208,7 @@ export const useMessageListener = (fn: () => void, me: string) => {
 
     return () => {
       if (ws) {
+        toReconnect = false;
         ws.close(); // 组件卸载时关闭WebSocket连接
       }
     };
