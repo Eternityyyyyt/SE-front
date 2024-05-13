@@ -854,13 +854,13 @@ const Chatbox: React.FC<ChatboxProps> = ({
       <div className={replying ? styles.messages_haveReplyBubble : styles.messages}>
         {/* 消息列表容器 */}
         {messages?.filter((msg) => !msg.deleted).map((item) => (
-          <div ref = {(el) => {
+          <div  key={item.message_id}  ref = {(el) => {
             if (el) {
               messageRefs.current.set(item.message_id, el);
             }
           }}>
           <MessageBubble 
-          key={item.message_id} 
+          
           isMe={item.sender == me} 
           timestamp={item.created_time} 
           avatarPath={`..${avatars[item.sender]}`}
