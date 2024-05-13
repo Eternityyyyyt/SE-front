@@ -143,7 +143,8 @@ const FriendRequestList = () => {
                                 {<img src={`..${request.senderAvatar}`} alt="Avatar" className={styles.avatar} />}
                             </div>
                             <p>Sender: {request.sender}</p>
-                            <p>Create Time: {request.created_time}</p>
+                            <p>Send by: {request.sendBySearch ? `Search` : `Group chat`}</p>
+                            <p>Send Time: {request.created_time}</p>
                             <p>Status: {getStatusText(request.status)}</p>
                             <p>Request Message: {request.requestMessage}</p>
                             {request.status === 0 && (

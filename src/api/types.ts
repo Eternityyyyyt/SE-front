@@ -16,6 +16,7 @@ export type Message = {
     created_time: number;    // 时间戳
     replying: number;       // 回复那条message（id）(相当于微信的引用)
     repliedCount: number;   // 此条消息被回复的次数，默认为0
+    deleted:boolean;
 };
 
   
@@ -29,3 +30,12 @@ export type Conversation = {
     adminList?:string[];
     avatar?:string
 };
+
+export type GroupInvitation = {
+    invitation_id:number;
+    chat_id:number;
+    invitor:string;
+    invitee:string;
+    created_time:number;
+    status :number;
+}
