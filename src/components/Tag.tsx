@@ -15,6 +15,7 @@ interface FriendDataList {
     userName: string;
     nickname: string;
     avatar: string;
+    tags: string[];
 }
 interface Tag {
     tag_id: number;
@@ -48,35 +49,63 @@ const Tag = () => {
     const [visibleAddFriendToTag, setVisibleAddFriendToTag] = useState(false);  // 添加好友到该Tag
     const [visibleRemoveFriendFromTag, setVisibleRemoveFriendFromTag] = useState(false); // 从该Tag中移除好友
     
+    const fetchData = async() => {
+        try {
+            const response = await fetch(getUrl(`/api/friendList/${userName}`), {
+                method: 'GET',
+                headers: {
+                    'Authorization': `${token}`
+                },
+            });
+            const data = await response.json();
+            if(Number(data.code) === 0) {
+                setFriendDataList(data.friendDataList);
+            } else {
+                switch(Number(data.code)) {
+                    case 2:
+                        alert("Invalid or expired JWT");
+                        break;
+                    case 3:
+                        alert("Can not view other's friend list");
+                        break;
+                    default:
+                        alert("Something Wrong!");
+                        break;
+                }
+            } 
+        } catch(error) {
+            console.error('Error')
+        }
+    };
     useEffect(() => {
-        const fetchData = async() => {
-            try {
-                const response = await fetch(getUrl(`/api/friendList/${userName}`), {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `${token}`
-                    },
-                });
-                const data = await response.json();
-                if(Number(data.code) === 0) {
-                    setFriendDataList(data.friendDataList);
-                } else {
-                    switch(Number(data.code)) {
-                        case 2:
-                            alert("Invalid or expired JWT");
-                            break;
-                        case 3:
-                            alert("Can not view other's friend list");
-                            break;
-                        default:
-                            alert("Something Wrong!");
-                            break;
-                    }
-                } 
-            } catch(error) {
-                console.error('Error')
-            }
-        };
+        // const fetchData = async() => {
+        //     try {
+        //         const response = await fetch(getUrl(`/api/friendList/${userName}`), {
+        //             method: 'GET',
+        //             headers: {
+        //                 'Authorization': `${token}`
+        //             },
+        //         });
+        //         const data = await response.json();
+        //         if(Number(data.code) === 0) {
+        //             setFriendDataList(data.friendDataList);
+        //         } else {
+        //             switch(Number(data.code)) {
+        //                 case 2:
+        //                     alert("Invalid or expired JWT");
+        //                     break;
+        //                 case 3:
+        //                     alert("Can not view other's friend list");
+        //                     break;
+        //                 default:
+        //                     alert("Something Wrong!");
+        //                     break;
+        //             }
+        //         } 
+        //     } catch(error) {
+        //         console.error('Error')
+        //     }
+        // };
         fetchData();
     }, [userName]);
 
@@ -123,7 +152,8 @@ const Tag = () => {
             setSelectedNewTagFriend([]);
             setTagName('');
             setVisibleNewTag(false);
-
+            fetchData();
+            
         } catch(error) {
             alert(error);
         }
@@ -166,6 +196,8 @@ const Tag = () => {
         setVisibleDeleteTag(false);
         setFriendTagList([]);
         setSelectedDeleteTag('');
+        updateTagList();
+        fetchData();
         } catch(error) {
             alert(error);
         }
@@ -214,6 +246,8 @@ const Tag = () => {
             });
             setVisibleAddFriendToTag(false);
             setSelectedNewFriendList([]);
+            updateTagList();
+            fetchData();
         } catch(error) {
             alert(error);
         }
@@ -246,6 +280,8 @@ const Tag = () => {
             })
             setVisibleRemoveFriendFromTag(false);
             setSelectedRemoveFriendList([]);
+            updateTagList();
+            fetchData();
         } catch(error) {
             alert(error);
         };
@@ -289,9 +325,10 @@ const Tag = () => {
             inTagUserList: selectedTag?.inTagUserList ? selectedTag?.inTagUserList: [],
         };
         setSelectedTag(newSelectedTag);
-        updateTagList();
         setVisibleUpdateTagName(false);
         setNewTagName('');
+        updateTagList();
+        fetchData();
     };
 
     const GetFriendData = (userName: string, nickname:string, avatar:string) => {
@@ -331,6 +368,7 @@ const Tag = () => {
 
                             <p>UserName: {request.userName}</p>
                             <p>Nickname: {request.nickname}</p>
+                            <p>Tags: {request.tags.join(', ')}</p>
                             <Button  type='dashed' onClick={() => GoToChat(request.userName)}>聊天</Button>
                             <Button type='dashed' onClick={() => GetFriendData(request.userName , request.nickname, request.avatar)}>查看详细信息</Button>
                         </li>
