@@ -3,15 +3,17 @@ import { db } from '../api/db';
 import { API_BASE_URL } from './constants';
 // 获取会话显示名称的函数
 // 目前只涉及私聊界面
-export function getConversationDisplayName(conversation: Conversation ,me:string) {
+export function getConversationDisplayName(conversation: Conversation | undefined,me:string) {
     // return conversation.type === 'private_chat'
     //   ? `私聊 #${conversation.id}` // 私聊显示`私聊#ID`
     //   : `群聊 #${conversation.id} (${conversation.memberList.length})`; // 群聊显示`群聊#ID (成员数)`
+    if (!conversation){return '';}
     if(!conversation.isGroup){
       return `${conversation.memberList.filter((user) => user !== me)[0]}`;
     }
     else{
-       return conversation.memberList.join(', ')
+      // return conversation.memberList.join(', ')
+      return conversation.chatName
     }
   }
 

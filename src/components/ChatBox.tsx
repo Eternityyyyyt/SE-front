@@ -40,18 +40,20 @@ const Chatbox: React.FC<ChatboxProps> = ({
   const replying = 0; // 先不引用
   const [avatars, setAvatars] = useState<Record<string, string>>({});
   const [friendAvatars, setFriendAvatars] = useState<Record<string, string>>({});
+  const firstUpdate = useRef(true);
   useEffect(() => {
     const fetchAvatars = async () => {
       const newAvatars:Record<string, string>= {};
       if(currConversation){
         for (const member of currConversation?.memberList) {
-            newAvatars[member] = await getUserAvatar(member, me);
+          if (!(member in avatars)) {newAvatars[member] = await getUserAvatar(member, me);}
+          else{newAvatars[member] = avatars[member]}
         }
       }
       setAvatars(newAvatars);
     };
     fetchAvatars();
-  }, [conversation?.chat_id,currConversation?.chat_id,currConversation?.memberList]);
+  }, [currConversation?.memberList]);
 
   // 使用ahooks的useRequest钩子从IndexedDB异步获取消息数据，依赖项为lastUpdateTime
   const { data: messages } = useRequest(
@@ -112,8 +114,8 @@ const Chatbox: React.FC<ChatboxProps> = ({
   const [groupInvitationList,setGroupInvitaionList] = useState<GroupInvitation[]>([])
   const dispatch = useDispatch();
   const router = useRouter()
-  // 三个点
-  
+
+ 
   useEffect(() => {
     setCurrConversation(conversation)
     settings();
@@ -129,7 +131,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
       }
       setFriendAvatars(newAvatars);
     };
-    fetchFriendAvatars();
+    if(visibleDisplayMembers){fetchFriendAvatars();}
   },[visibleDisplayMembers])
   const fetchGroupInvitationList = async () => {
     const {data} = await axios.get(getUrl('/api/chat/groupInvitation'), {
@@ -158,8 +160,10 @@ const Chatbox: React.FC<ChatboxProps> = ({
     }
   };
   useEffect(() =>{
-    if(currConversation?.adminList?.includes(userName) || currConversation?.owner == userName){
-      fetchGroupInvitationList();
+    if(visibleGroup){
+      if(currConversation?.adminList?.includes(userName) || currConversation?.owner == userName){
+        fetchGroupInvitationList();
+      }
     }
   },[visibleGroup])
 
@@ -590,9 +594,9 @@ const Chatbox: React.FC<ChatboxProps> = ({
       {conversation && (
         <>
           <div className={styles.title}>
-            {getConversationDisplayName(conversation,userName)}
+            {getConversationDisplayName(currConversation,userName)}
             <Dropdown overlay={menu} trigger={['click']}>
-              <Button type='dashed' shape='circle' key={"settings"}  onClick={settings} className={styles.settings}>. . .</Button>
+              <Button type='dashed' shape='circle' key={"settings"}  onClick={settings} className={styles.settings}>...</Button>
             </Dropdown>
           </div>
           <Divider className={styles.divider} />
@@ -835,8 +839,8 @@ const Chatbox: React.FC<ChatboxProps> = ({
 
       <div className={styles.messages}>
         {/* 消息列表容器 */}
-        {messages?.map((item) => (
-          <MessageBubble key={item.message_id} isMe={item.sender == me} timestamp={item.created_time} avatarPath={`..${avatars[item.sender]}`} {...item} /> // 渲染每条消息为MessageBubble组件
+        {messages?.filter((msg) => !msg.deleted).map((item) => (
+          <MessageBubble key={item.message_id} isMe={item.sender == me} timestamp={item.created_time} avatarPath={`..${avatars[item.sender]}`}{...item} /> // 渲染每条消息为MessageBubble组件
         ))}
         <div ref={messageEndRef} /> {/* 用于自动滚动到消息列表底部的空div */}
       </div>

@@ -57,7 +57,19 @@ export async function getMessages({
         },
       });
       info = data.info
-      data.data.forEach((item: Message) => messages.push(item)); // 将获取到的消息添加到列表中
+      data.data.map((item:any) => {
+          return {
+            message_id: item.message_id,
+            chat_id: item.chat_id,        
+            content: item.content,        
+            sender: item.sender,     
+            created_time: item.created_time,    
+            replying: item.replying,       
+            repliedCount: item.repliedCount,
+            deleted:false
+          } as Message
+        }
+      ).forEach((item: Message) => messages.push(item)); // 将获取到的消息添加到列表中
       after = messages[messages.length - 1].created_time; // 更新游标为最后一条消息的时间戳，用于下轮查询
     // 得到chat_id的after后的所有消息，返回一个Message List
     }
