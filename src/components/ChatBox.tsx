@@ -1,6 +1,7 @@
 import React, { useRef, useState ,useEffect} from 'react';
 import { Input, Button, Divider, message, Menu, Dropdown, Modal, List, Avatar } from 'antd';
 import { useRequest  } from 'ahooks';
+import { useRouter } from "next/router";
 import styles from './ChatBox.module.css';
 import MessageBubble from './MessageBubble';
 import { Conversation, Message } from '../api/types';
@@ -8,11 +9,12 @@ import { addMessage } from '../api/chat';
 import { getConversationDisplayName } from '../api/utils';
 import { db } from '../api/db';
 import { RootState } from '@/redux/store';
-import { useSelector } from 'react-redux';
 import {getUserAvatar} from  '../api/utils'
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import { getUrl } from '../api/utils';
+import { useDispatch, useSelector } from 'react-redux';
+import { setFriendName,setFriendNickname, setFriendAvatar } from '@/redux/friend';
 
 export type ChatboxProps = {
   me: string; // 当前用户
@@ -30,6 +32,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
 }) => {
   const cachedMessagesRef = useRef<Message[]>([]); // 使用ref存储组件内缓存的消息列表
   const [sending, setSending] = useState(false); // 控制发送按钮的状态
+  const [sendingRequest,setSendingRequest] = useState(false);
   const [inputValue, setInputValue] = useState(''); // 控制输入框的值
   const messageEndRef = useRef<HTMLDivElement>(null); // 指向消息列表末尾的引用，用于自动滚动
   const token = useSelector((state:RootState) => state.auth.token);
@@ -101,6 +104,12 @@ const Chatbox: React.FC<ChatboxProps> = ({
   const [visibleRemoveMember, setVisibleRemoveMember] = useState(false);  // 移除成员Modal
   const [visibleDisplayMembers, setVisibleDisplayMembers] = useState(false);  // 显示群成员Modal
   const [visibleWithdraw, setVisibleWithdraw] = useState(false);           // 退出群聊确认Modal
+  const [visibleAddFriend, setVisibleAddFriend] = useState(false);           // 添加好友填写信息Modal
+  const [friendList , setFriendList] = useState<string[]>([])
+  const [requestMessage , setRequestMessage] = useState('');
+  const [memberToAddFriend,setMemberToAddFriend] = useState('');
+  const dispatch = useDispatch();
+  const router = useRouter()
   // 三个点
   useEffect(() => {
     setCurrConversation(conversation)
@@ -170,6 +179,34 @@ const Chatbox: React.FC<ChatboxProps> = ({
   };
   const displayMemberList = async () => {
     await db.updateConversation(me,chat_id!,token).then(conv => {if(conv){ setCurrConversation((oldconv) => conv)}});
+    try {
+      const response = await fetch(getUrl(`/api/friendList/${userName}`), {
+          method: 'GET',
+          headers: {
+              'Authorization': `${token}`
+          },
+      });
+      const data = await response.json();
+      if(Number(data.code) === 0) {
+        setFriendList(data.friendDataList.map((obj:any) => obj.userName))
+        //setFriendList(data.friendDataList);
+      } else {
+          switch(Number(data.code)) {
+              case 2:
+                  alert("Invalid or expired JWT");
+                  break;
+              case 3:
+                  alert("Can not view other's friend list");
+                  break;
+              default:
+                  alert("Something Wrong!");
+                  break;
+          }
+        } 
+    } catch(error) {
+        console.error('Error')
+    }
+  
     //console.log(chat_id)
     setVisibleDisplayMembers(true);
   };
@@ -232,6 +269,10 @@ const Chatbox: React.FC<ChatboxProps> = ({
   };
   const handleWithdrawCancel = () => {
     setVisibleWithdraw(false);
+  }
+  const handleAddFriendCancel = () => {
+    setRequestMessage('')
+    setVisibleAddFriend(false);
   }
   /* 添加键函数 */
   const addAdminMembers = (memberName:string) => {
@@ -373,11 +414,62 @@ const Chatbox: React.FC<ChatboxProps> = ({
     setVisibleWithdraw(false);
     setVisibleGroup(false);
   };
+  const handleAddFriendOk =  () => {
+    setSendingRequest(true)
+    const content = requestMessage.trim();
+    fetch(getUrl(`/api/sendFriendRequest/${memberToAddFriend}`), {
+      method: 'POST',
+      headers: {
+          'Authorization': `${token}` // 发送本地token到后端
+      },
+      body: JSON.stringify({
+        senderName : `${userName}`, 
+        sendBySearch : false, 
+        requestMessage : `${content}`
+      }),
+    })
+    .then((res) => res.json())
+    .then((res => {
+        if(Number(res.code === 0)) {
+            alert("Send Friend Request Successfully")
+            setRequestMessage('')
+            setVisibleAddFriend(false);
+        }
+        else {
+          switch(Number(res.code)) {
+              case 2:
+                  alert('Invalid or expired JWT');
+                  break;
+              case 1:
+                  alert('Target User Not Found');
+                  break;
+              case 3:
+                  alert('Friend request already exists');
+                  break;
+              case 4:
+                  alert("Cannot send friend request to yourself");
+                  break;
+              case 5:
+                  alert("He/She is already your friend");
+                  break;
+              case 6:
+                  alert("He/she has already sent a friend request to you, please handle it first")
+                  break;
+              default:
+                  alert("Something Wrong!");
+          }
+        }
+      }
+    ))
+    setSendingRequest(false)
+    
+  }
+
   const getMemberIdentity = (member:string) => {
     const isMeSuffix =  me == member ? "（我）" : ""
     if(currConversation?.owner === member){return `（群主）${isMeSuffix}`}
     if(currConversation?.adminList?.includes(member)){return `（管理员）${isMeSuffix}`}
-    return ''
+    return isMeSuffix
   }
   const memberListSortFunc = (a:string,b:string) => {
     if (a === currConversation?.owner) return -1;
@@ -389,6 +481,11 @@ const Chatbox: React.FC<ChatboxProps> = ({
 
     return a < b ? -1 : 1;
   }
+  const goToFriendData = (userName: string, avatar:string) => {
+    dispatch(setFriendName(userName));
+    dispatch(setFriendAvatar(avatar));
+    router.push(`/friendData/`);
+};
   const menu = (
     <Menu>
       <Menu.Item>
@@ -475,6 +572,14 @@ const Chatbox: React.FC<ChatboxProps> = ({
                 // 添加好友等操作TODO
             ]}
             >{<Avatar src={`..${avatars[member]}`}></Avatar>} {member}{getMemberIdentity(member)}
+            { member !== me ? (friendList.includes(member) ?  <Button  onClick={() => goToFriendData(member,avatars[member])}
+            style={{ float: 'right',  margin: '0 10px',}}>
+              {'查看详细'}</Button> : <Button onClick={() => {setVisibleAddFriend(true);setMemberToAddFriend(member)}}
+            style={{ float: 'right',  margin: '0 10px',}}>
+              {'添加好友'}</Button>
+              
+            ): null
+            }
             </List.Item>
             )}
             />
@@ -528,8 +633,31 @@ const Chatbox: React.FC<ChatboxProps> = ({
                   )}
                   />
             </Modal>
-
-
+          <Modal
+            title="请填写好友验证信息"
+            visible={visibleAddFriend}
+            onCancel={handleAddFriendCancel}
+            footer={[
+              <Button key="cancel" onClick={handleAddFriendCancel}  disabled={sendingRequest}loading={sendingRequest} >取消</Button>,
+              <Button key="create" type="primary" onClick={handleAddFriendOk}  disabled={sendingRequest}loading={sendingRequest} >确定</Button>
+            ]}
+            >
+              <Input.TextArea
+                className={styles.input}
+                value={requestMessage}
+                onChange={(e) => setRequestMessage(e.target.value)}
+                onPressEnter={(e) => {
+                  if (!e.shiftKey && !e.ctrlKey) {
+                    e.preventDefault(); // 阻止默认事件
+                    e.stopPropagation(); // 阻止事件冒泡
+                    handleAddFriendOk();
+                  }
+                }}
+                rows={3}
+                autoSize={false} // 关闭自动调整大小
+                readOnly={sendingRequest} // 当正在发送消息时，设置输入框为只读
+              />
+          </Modal>
 
           <Modal
             title="退出群聊"
