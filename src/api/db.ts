@@ -31,7 +31,15 @@ export class CachedData extends Dexie {
     const newMessages = await getMessages({ userName:me, after:cursor },token); // 从服务器获取更新的消息列表
     const convIds = newMessages.map((item) => item.chat_id);
     await this.messages.bulkPut(newMessages); // 使用bulkPut方法批量更新本地缓存
-
+    newMessages.forEach((msg) =>{
+      if (msg.replying){
+        this.messages.where('message_id').equals(msg.replying).modify((message) =>{
+          message.repliedCount++;
+        });
+      }
+      this.messages.put(msg)
+      }
+    )
     const newConvIds = Array.from(new Set(convIds)); // 获取新出现的会话 ID
     const cachedConvIds = new Set(
       (await this.conversations.where('chat_id').anyOf(newConvIds).toArray()).map(

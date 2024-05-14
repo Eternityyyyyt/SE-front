@@ -89,9 +89,6 @@ const Chatbox: React.FC<ChatboxProps> = ({
       .catch(() => message.error('消息发送失败'))
       .finally(() =>{ 
         setSending(false);
-        db.messages.where('message_id').equals(replying).modify((message) =>{
-          message.repliedCount++;
-        });
         setReplying(0);
       });
   };
