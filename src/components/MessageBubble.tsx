@@ -17,7 +17,6 @@ export type MessageBubbleProps = {
   avatarPath:string//头像
   setReplying:any,
   replyingContent:string,
-  repliedCount:number,
   scrollToReply:any,
   replying:number
 };
@@ -32,7 +31,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   avatarPath,
   setReplying,
   replyingContent,
-  repliedCount,
   scrollToReply,
   replying
 }) => {
@@ -47,6 +45,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   });
   const token = useSelector((state:RootState) => state.auth.token);
   const userName = useSelector((state:RootState) => state.auth.name);
+  const [repliedCount ,setRepliedCount] = useState(0)
   const [visibleReadMembers,setVisibleReadMembers] = useState(false)
   const [readMemberList,setReadMemberList] = useState<string[]>([])
   if(!shouldRender){return null;}
@@ -82,7 +81,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     }
     if (e.key === '3') {
       await getMessageReadStatus(userName,message_id,token)
-      .then((list) => setReadMemberList(list))
+      .then(([list,repl]) =>{ 
+        setRepliedCount(repl)
+        setReadMemberList(list)
+      })
 
       setVisibleReadMembers(true)
     }

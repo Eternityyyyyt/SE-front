@@ -259,9 +259,9 @@ export async function getMessageReadStatus( userName:string, message_id:number,t
       },
     });
     info = data.info
-    return data.data as string[];
-  }catch (error) {
+    return [ data.data , data.repliedCount] as [string[],number];
+  }catch (error) { 
     console.log(info);
+    return [[],0] as [string[],number]
   }
-  return []
 }
