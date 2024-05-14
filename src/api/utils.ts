@@ -9,7 +9,7 @@ export function getConversationDisplayName(conversation: Conversation | undefine
     //   : `群聊 #${conversation.id} (${conversation.memberList.length})`; // 群聊显示`群聊#ID (成员数)`
     if (!conversation){return '';}
     if(!conversation.isGroup){
-      return `${conversation.memberList.filter((user) => user !== me)[0]}`;
+      return `${conversation.memberList?.filter((user) => user !== me)[0]}`;
     }
     else{
       // return conversation.memberList.join(', ')
@@ -31,6 +31,7 @@ export function getUrl(apiName: string) {
 
 export async function getPrivateConversationDisplayAvatar(conversation: Conversation , me:string) {//获取聊天应当显示的头像
   let result = "default"
+  if(!conversation.memberList){return ''}
   if(!conversation.isGroup){
     const friendName = conversation.memberList.filter((user) => user !== me)[0];
     try {

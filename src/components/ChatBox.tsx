@@ -675,7 +675,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
           </div>
           <List
             bordered
-            dataSource={currConversation?.memberList.filter(item => item !== userName)}
+            dataSource={currConversation?.memberList?.filter(item => item !== userName)}
             renderItem={(member, index) => (
             <List.Item key={index} actions={[
                 <Button key={"add"} type='dashed' onClick={() => addAdminMembers(member)}><CheckOutlined /></Button>,
@@ -698,7 +698,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
         >
           <List
             bordered
-            dataSource={currConversation?.memberList.slice(0).sort(memberListSortFunc)}
+            dataSource={currConversation?.memberList?.slice(0).sort(memberListSortFunc)}
             renderItem={(member, index) => (
             <List.Item key={index} actions={[]}
             >{<Avatar src={`..${avatars[member]}`}></Avatar>} {member}{getMemberIdentity(member)}
@@ -759,7 +759,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
             <p>请选择新的群主：{groupOwnerTmp}</p>
             <List
               bordered
-              dataSource={currConversation?.memberList.filter(item => item !== userName)}
+              dataSource={currConversation?.memberList?.filter(item => item !== userName)}
               renderItem={(member, index) => (
                 <List.Item key={index} actions={[
                   <Button key={("setOwner")} type='dashed' onClick={() => setOwnerTmp(member)}><CheckOutlined /></Button>
@@ -783,7 +783,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
             <p>请选择要移除的成员：{removeMember}</p>
             <List
               bordered
-              dataSource={currConversation?.memberList.filter(item => item !== userName)}
+              dataSource={currConversation?.memberList?.filter(item => item !== userName)}
               renderItem={(member, index) => (
                 <List.Item key={index} actions={[
                   <Button key={"add"} type='dashed' onClick={() => setRemoveMembers(member)}><CheckOutlined /></Button>,
