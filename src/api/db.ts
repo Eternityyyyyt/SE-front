@@ -32,6 +32,7 @@ export class CachedData extends Dexie {
     const convIds = newMessages.map((item) => item.chat_id);
     await this.messages.bulkPut(newMessages); // 使用bulkPut方法批量更新本地缓存
     newMessages.forEach((msg) =>{
+      msg.repliedCount=0
       if (msg.replying){
         this.messages.where('message_id').equals(msg.replying).modify((message) =>{
           message.repliedCount++;
