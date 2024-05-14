@@ -126,6 +126,8 @@ const Chatbox: React.FC<ChatboxProps> = ({
   const [visibleAddFriend, setVisibleAddFriend] = useState(false);           // 添加好友填写信息Modal
   const [visibleInviteFriend, setVisibleInviteFriend] = useState(false); //邀请好友modal
   const [visibleGroupInvitationList, setVisibleGroupInvitationList] = useState(false);           // 添加好友填写信息Modal
+  const [visibleChangeChatName, setVisibleChangeChatName] = useState(false); 
+  const [inputChatName,setInputChatName]=useState('')
   const [friendList , setFriendList] = useState<string[]>([])
   const [requestMessage , setRequestMessage] = useState('');
   const [memberToAddFriend,setMemberToAddFriend] = useState('');
@@ -573,6 +575,28 @@ const Chatbox: React.FC<ChatboxProps> = ({
       alert(data.info);
     }
   }
+  const handleChangeChatNameOk = async() => {
+    if(inputChatName.length === 0) {
+      return;
+    }
+    const {data} = await axios.post(getUrl('/api/chat/chatName'), {
+        userName: userName,
+        chat_id: chat_id,
+        newName: inputChatName
+    }, {
+        headers: {
+          'Authorization': `${token}`
+        }
+    });
+    if(data.code === 0) {
+      setVisibleChangeChatName(false);
+      if(conversation) {
+        await db.updateConversation(me,chat_id!,token).then(conv => {console.log(conv); setCurrConversation((oldconv) => conv)});
+      }
+    } else {
+      alert(data.info);
+    }
+  }
   const getMemberIdentity = (member:string) => {
     const isMeSuffix =  me == member ? "（我）" : ""
     if(currConversation?.owner === member){return `（群主）${isMeSuffix}`}
@@ -625,11 +649,13 @@ const Chatbox: React.FC<ChatboxProps> = ({
         ]}
         >
           <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <h2 style={{textAlign: 'center'}}>{currConversation?.chatName}</h2>
           <Button key="memberList" type="link" onClick={displayMemberList}>群成员列表</Button>
           <Button key="setAdmin" type="link" onClick={admin}  disabled = {!(currConversation?.owner == userName)}>设置管理员</Button>
           <Button key="setOwner" type="link" onClick={owner}  disabled = {!(currConversation?.owner == userName)}>设置群主</Button>
           <Button key="removeMember" type="link" onClick={removeMemberInit} disabled = {!(currConversation?.adminList?.includes(userName) || currConversation?.owner == userName)}>移除成员</Button>
           <Button key="groupInvitation" type="link" onClick={() => setVisibleGroupInvitationList(true)} disabled = {!(currConversation?.adminList?.includes(userName) || currConversation?.owner == userName)}>查看入群邀请</Button>
+          <Button key="changeChatName" type="link" onClick={() => setVisibleChangeChatName(true)} disabled = {!(currConversation?.adminList?.includes(userName) || currConversation?.owner == userName)}>更改群名</Button>
           <Button key="withdraw" type="dashed"  onClick={withdraw} style={{ color: 'red' }}>退出群聊</Button>
           </div>
           
@@ -848,7 +874,22 @@ const Chatbox: React.FC<ChatboxProps> = ({
         {/* 私聊相关Modal TODO */}
 
 
-      
+        <Modal
+          title="请填写新群名"
+          visible={visibleChangeChatName}
+          onCancel={()=>{setVisibleChangeChatName(false);setInputChatName(currConversation?.chatName!)}}
+          footer={[
+            <Button key="cancel" onClick={()=>{setVisibleChangeChatName(false);setInputChatName(currConversation?.chatName!)}}  disabled={sendingRequest}loading={sendingRequest} >取消</Button>,
+            <Button key="ok" type="primary" onClick={handleChangeChatNameOk}  disabled={sendingRequest}loading={sendingRequest} >确定</Button>
+          ]}
+          >
+            <Input
+              placeholder='输入新群名'
+              className={styles.input}
+              value={inputChatName}
+              onChange={(e) => setInputChatName(e.target.value)}
+            />
+        </Modal>
 
       {/* <div>{replying!== 0 ?  messages?.filter((msg) => msg.message_id === replying)[0]?.content : ''}</div> */}
       <div className={replying ? styles.messages_haveReplyBubble : styles.messages}>
