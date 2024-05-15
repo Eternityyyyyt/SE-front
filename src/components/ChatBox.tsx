@@ -1,7 +1,6 @@
 import React, { useRef, useState ,useEffect} from 'react';
 import { Input, Button, Divider, message, Menu, Dropdown, Modal, List, Avatar,DatePicker , Select, Space } from 'antd';
 import { MessageOutlined, TeamOutlined ,PlusCircleOutlined ,CheckOutlined, CloseOutlined } from '@ant-design/icons';
-import dayjs from 'dayjs';
 import type {  SelectProps } from 'antd';
 import { useRequest  } from 'ahooks';
 import { useRouter } from "next/router";
@@ -646,8 +645,8 @@ const Chatbox: React.FC<ChatboxProps> = ({
   const[filterMemberList,setFilterMemberList] = useState(currConversation?.memberList)
   const [timeRange, setTimeRange] = useState([0,Date.now()]);
   const handleRangeChange = (dates:any,datestrings:any) => {
-    const startTimestamp = dates[0] ? dates[0].valueOf() : 0;
-    const endTimestamp = dates[1] ? dates[1].valueOf() : Date.now();
+    const startTimestamp = dates ? (dates[0] ? dates[0].valueOf() : 0) : 0;
+    const endTimestamp =  dates ? (dates[1] ? dates[1].valueOf() : Date.now()):Date.now();
     setTimeRange([startTimestamp/1000, endTimestamp/1000]);
   };
 //###########################
@@ -686,7 +685,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
         ]}
         >     
         <RangePicker 
-        showTime 
+        showTime ={{ format: 'HH:mm' }}
         onChange={handleRangeChange}
         />
         <Select
