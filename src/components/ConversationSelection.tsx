@@ -126,13 +126,13 @@ const ConversationSelection: React.FC<ConversationSelectionProps> = ({
               !item.isGroup ? (
                 <div className={styles.membersList}>
                   {/* {item.memberList.filter((user) => user !== me)} */}
-                  <p>{latestMessages[item.chat_id]}      （{formattime(latestMessagesTime[item.chat_id])}）</p>
+                  <p>{latestMessages[item.chat_id]}      {latestMessages[item.chat_id] ? `（` : ""}{formattime(latestMessagesTime[item.chat_id])}{latestMessages[item.chat_id] ? `）` : ""}</p>
                   
                 </div>
               ) : (
                 <div className={styles.membersList}>
                   {/* {item.memberList.join(', ')} */}
-                  <p>{latestMessages[item.chat_id]}      （{formattime(latestMessagesTime[item.chat_id])}）</p>
+                  <p>{latestMessages[item.chat_id]}      {latestMessages[item.chat_id] ? `（` : ""}{formattime(latestMessagesTime[item.chat_id])}{latestMessages[item.chat_id] ? `）` : ""}</p>
                 </div>
                 
               )

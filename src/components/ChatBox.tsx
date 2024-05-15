@@ -1,6 +1,8 @@
 import React, { useRef, useState ,useEffect} from 'react';
-import { Input, Button, Divider, message, Menu, Dropdown, Modal, List, Avatar  } from 'antd';
+import { Input, Button, Divider, message, Menu, Dropdown, Modal, List, Avatar,DatePicker , Select, Space } from 'antd';
 import { MessageOutlined, TeamOutlined ,PlusCircleOutlined ,CheckOutlined, CloseOutlined } from '@ant-design/icons';
+import dayjs from 'dayjs';
+import type {  SelectProps } from 'antd';
 import { useRequest  } from 'ahooks';
 import { useRouter } from "next/router";
 import styles from './ChatBox.module.css';
@@ -13,7 +15,7 @@ import { RootState } from '@/redux/store';
 import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import { setFriendName,setFriendNickname, setFriendAvatar } from '@/redux/friend';
-
+const { RangePicker } = DatePicker;
 export type ChatboxProps = {
   me: string; // 当前用户
   conversation?: Conversation; // 当前选中的会话 (可能为空)
@@ -99,7 +101,6 @@ const Chatbox: React.FC<ChatboxProps> = ({
   // }, {});
   const scrollToMessage = (messageId:number) => {
     const ref = messageRefs.current.get(messageId);
-
       if (ref) {
         ref.scrollIntoView({ behavior: 'smooth' ,block: 'end',});
       }
@@ -188,12 +189,13 @@ const Chatbox: React.FC<ChatboxProps> = ({
     setReplying(0)
     if(conversation) {
       setSelectedMembers([]);
+      setFilterMemberList(conversation.memberList)
     }
     else {
       console.log("No Selected Conversation");
     }
   };
-  // 管理：群为群管理，私聊为好友管理
+  // 管理：群为群管理，私聊为好友管理，不写好友管理了
   const control = async () => {
     await db.updateConversation(me,chat_id!,token).then(conv => {if(conv){setCurrConversation((oldconv) => conv)}});
     if(currConversation?.isGroup === true) {
@@ -615,10 +617,48 @@ const Chatbox: React.FC<ChatboxProps> = ({
     dispatch(setFriendAvatar(avatar));
     router.push(`/friendData/`);
 };
+
+
+//##############################################
+//聊天记录部分
+  const [visibleChatHistory,setVisibleChatHistory] = useState(false)
+  const historyEndRef = useRef<HTMLDivElement>(null)
+  const historyRefs = useRef(new Map())
+
+  const scrollToHistory = (messageId:number) => {
+    const ref = historyRefs.current.get(messageId);
+      if (ref) {
+        ref.scrollIntoView({ behavior: 'smooth' ,block: 'end',});
+      }
+  };
+  const scrollToHistoryEnd = () => {
+    historyEndRef.current?.scrollIntoView({ behavior: 'smooth' ,});
+  };
+  useEffect(()=>{
+    scrollToHistoryEnd();
+  },[visibleChatHistory])
+  const memberOptions: SelectProps['options'] = currConversation?.memberList.map(i => {
+      return {
+        label: i,
+        value: i,
+      }
+    });
+  const[filterMemberList,setFilterMemberList] = useState(currConversation?.memberList)
+  const [timeRange, setTimeRange] = useState([0,Date.now()]);
+  const handleRangeChange = (dates:any,datestrings:any) => {
+    const startTimestamp = dates[0] ? dates[0].valueOf() : 0;
+    const endTimestamp = dates[1] ? dates[1].valueOf() : Date.now();
+    setTimeRange([startTimestamp/1000, endTimestamp/1000]);
+  };
+//###########################
+
   const menu = (
     <Menu>
       <Menu.Item>
-        <Button type="dashed" key={"control"}  onClick={control}>管理</Button>
+        <Button type="dashed" key={"control"}  onClick={control} disabled={!conversation?.isGroup}>群聊管理</Button>
+      </Menu.Item>
+      <Menu.Item>
+        <Button type="dashed" key={"history"}  onClick={()=>{setFilterMemberList(currConversation?.memberList);setVisibleChatHistory(true);}} >聊天记录</Button>
       </Menu.Item>
     </Menu>
   );
@@ -636,7 +676,59 @@ const Chatbox: React.FC<ChatboxProps> = ({
           <Divider className={styles.divider} />
         </>
       )}
-
+      <Modal
+        title="聊天记录"
+        visible={visibleChatHistory}
+        onCancel={()=>{setVisibleChatHistory(false)}}
+        centered
+        footer={[
+          <Button key="cancel" onClick={()=>{setVisibleChatHistory(false)}}>关闭</Button>,
+        ]}
+        >     
+        <RangePicker 
+        showTime 
+        onChange={handleRangeChange}
+        />
+        <Select
+            mode="multiple"
+            allowClear
+            style={{ width: '100%' ,marginTop:'10px'}}
+            placeholder="Please select"
+            value={filterMemberList}
+            onChange={(newValue)=>{setFilterMemberList(newValue)}}
+            options={memberOptions}
+          />
+          <div className={styles.history}>
+        {messages?.filter((msg) => !msg.deleted)
+        .filter((msg)=>filterMemberList?.includes(msg.sender))
+        .filter((msg)=>msg.created_time >= timeRange[0])
+        //.filter((msg)=>{msg.created_time <= timeRange[0];console.log(msg.created_time);console.log(timeRange[0])})
+        .filter((msg)=>msg.created_time <= timeRange[1])
+        .map((item) => (
+          <div key={item.message_id}  ref = {(el) => {
+            if (el) {
+              historyRefs.current.set(item.message_id, el);
+            }
+          }}>
+          <MessageBubble 
+          isMe={item.sender == me} 
+          timestamp={item.created_time} 
+          avatarPath={`..${avatars[item.sender]}`}
+          setReplying={setReplying}
+          scrollToReply = {scrollToHistory}
+          replyingContent= {item.replying===0 ? '' : 
+            messages.filter((msg) => msg.message_id === item.replying)
+              .map((msg) => {
+                return `${msg.sender}：${msg.content}`
+              })[0]
+          }
+          {...item} />
+          {/* <Divider/> */}
+          </div>
+        ))}
+        <div ref={historyEndRef} />
+      </div>
+        </Modal>
       <Modal
         title="设置"
         visible={visibleGroup}

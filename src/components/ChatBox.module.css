@@ -18,6 +18,11 @@
     height: calc(100% - 195px);
     overflow: auto;
   }
+  .history {
+    padding: 20px;
+    height: 60vh;
+    overflow: auto;
+  }
   .input {
     border-radius: 0;
     border: none;

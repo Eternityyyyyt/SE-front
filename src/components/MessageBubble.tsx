@@ -38,10 +38,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   const seconds = Math.floor(timestamp);
   // 格式化时间戳为易读的时间格式
   //console.log(timestamp)
+  const date = new Date(seconds*1000);
   const formattedTime = new Date(seconds * 1000).toLocaleTimeString('zh-CN', {
     hour: '2-digit',
     minute: '2-digit',
-    second: '2-digit',
   });
   const token = useSelector((state:RootState) => state.auth.token);
   const userName = useSelector((state:RootState) => state.auth.name);
@@ -101,7 +101,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
       </div>
       
         <div className={styles.sender}>
-          {sender} @ {formattedTime} {/* 显示发送者和消息时间 */}
+          {sender} @{` ${date.getMonth()+1}月${date.getDate()}日 `} {formattedTime} {/* 显示发送者和消息时间 */}
         </div>
         <Dropdown menu={{ items,onClick: handleMenuClick, }} trigger={['contextMenu']}>
         <div
