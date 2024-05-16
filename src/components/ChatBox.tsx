@@ -6,7 +6,7 @@ import { useRequest  } from 'ahooks';
 import { useRouter } from "next/router";
 import styles from './ChatBox.module.css';
 import MessageBubble from './MessageBubble';
-import { Conversation, Message ,GroupInvitation} from '../api/types';
+import { Conversation, Message ,GroupInvitation, GroupNotice} from '../api/types';
 import { addMessage } from '../api/chat';
 import { getConversationDisplayName ,getUserAvatar ,getUrl , formattime} from '../api/utils';
 import { db } from '../api/db';
@@ -124,6 +124,10 @@ const Chatbox: React.FC<ChatboxProps> = ({
   const [visibleInviteFriend, setVisibleInviteFriend] = useState(false); //邀请好友modal
   const [visibleGroupInvitationList, setVisibleGroupInvitationList] = useState(false);           // 添加好友填写信息Modal
   const [visibleChangeChatName, setVisibleChangeChatName] = useState(false); 
+  const [visibleCreateGroupNotice, setVisibleCreateGroupNotice] = useState(false);  // 创建群公告Modal
+  const [visibleGroupNotice, setVisibleGroupNotice] = useState(false);      // 群公告Modal
+  const [groupNotice, setGroupNotice] = useState<GroupNotice[]>([]);                       // 群公告内容
+  const [groupNoticeTmp, setGroupNoticeTmp] = useState('');                       // 群公告内容临时变量，用于编辑群公告
   const [inputChatName,setInputChatName]=useState('')
   const [friendList , setFriendList] = useState<string[]>([])
   const [requestMessage , setRequestMessage] = useState('');
@@ -206,6 +210,76 @@ const Chatbox: React.FC<ChatboxProps> = ({
       setVisibleGroup(false);
     }
   };
+  // 群公告相关 begin
+  const getGroupNotice = async () => {
+    const {data} = await axios.get(getUrl('/api/chat/groupNotice'), {
+      headers: {
+        Authorization: `${token}`
+      },
+      params: {
+        userName: userName,   
+        chat_id: chat_id,     
+      },
+      });
+      if(data.code === 0) {
+        setGroupNotice( data.data.map((obj:any) =>{
+          return {
+            groupNotice_id: obj.groupNotice_id,
+            senderName: obj.senderName,
+            senderAvatar: obj.senderAvatar,
+            content: obj.content,
+            created_time: obj.created_time,
+          } as GroupNotice
+          }
+        ));
+
+      } else {
+        alert(data.info);
+      }
+      console.log(data.data);
+      setVisibleGroupNotice(true);
+    
+  };
+  const createGroupNotice = async () => {
+    setVisibleCreateGroupNotice(true);
+  };
+  const deleteGroupNotice = async (item:GroupNotice) => {
+    const {data} = await axios.post(getUrl('/api/chat/deleteGroupNotice'), {
+      userName: userName,
+      chat_id: chat_id,
+      groupNotice_id: item.groupNotice_id,
+    }, {
+      headers: {
+          'Authorization': `${token}`
+      }
+    });
+    if(data.code === 0) {
+      await getGroupNotice();
+    }
+    
+  };
+  const updateGroupNotice = async () => {
+    const {data} = await axios.post(getUrl('/api/chat/groupNotice'), {
+      userName: userName,
+      chat_id: chat_id,
+      content: groupNoticeTmp,
+    }, {
+      headers: {
+          'Authorization': `${token}`
+      }
+    });
+    if(data.code === 0) {
+      alert("Successfully updated group notice");
+      setVisibleCreateGroupNotice(false);
+      setGroupNoticeTmp("");
+      await getGroupNotice();
+    } else {
+      alert(data.info);
+    }
+    
+  };
+
+  // 群公告相关 end
   const admin = async () => {
     let currOwner = currConversation?.owner;
     let currAdminList = currConversation?.adminList;
@@ -659,6 +733,9 @@ const Chatbox: React.FC<ChatboxProps> = ({
       <Menu.Item>
         <Button type="dashed" key={"history"}  onClick={()=>{setFilterMemberList(currConversation?.memberList);setVisibleChatHistory(true);}} >聊天记录</Button>
       </Menu.Item>
+      <Menu.Item>
+        <Button type="dashed" key={"notice"}  onClick={getGroupNotice} disabled={!conversation?.isGroup}>群公告</Button>
+      </Menu.Item>
     </Menu>
   );
 
@@ -978,6 +1055,51 @@ const Chatbox: React.FC<ChatboxProps> = ({
               onChange={(e) => setInputChatName(e.target.value)}
             />
         </Modal>
+
+        <Modal
+          title="创建群公告"
+          visible={visibleCreateGroupNotice}
+          onCancel={()=>{setVisibleCreateGroupNotice(false);}}
+          footer={[
+            <Button key="cancel" onClick={()=>{setVisibleCreateGroupNotice(false); setGroupNoticeTmp('');}}>取消</Button>,
+            <Button key="create" type='primary' onClick={updateGroupNotice}>确定</Button>
+          ]}
+          >
+            <Input
+              placeholder='输入群公告'
+              className={styles.input}
+              value={groupNoticeTmp}
+              onChange={(e) => setGroupNoticeTmp(e.target.value)}
+            />
+        </Modal>
+
+        
+
+        <Modal
+          title="群公告"
+          visible={visibleGroupNotice}
+          onCancel={()=>{setVisibleGroupNotice(false);}}
+          footer={[
+            <Button key="create" onClick={createGroupNotice} disabled = {!(currConversation?.adminList?.includes(userName) || currConversation?.owner == userName)}>创建群公告</Button>,
+            
+          ]}
+          >
+            <List
+            bordered
+            dataSource={groupNotice}
+            renderItem={(item, index) => (
+            <List.Item key={index} actions={[
+              <Button key="delete" onClick={()=>deleteGroupNotice(item)} disabled = {!(currConversation?.adminList?.includes(userName) || currConversation?.owner == userName)}>删除</Button>,
+            ]}
+            >{<Avatar src={`..${item.senderAvatar}`} />} {item.senderName}: {item.content}
+            </List.Item>
+            )}
+            />
+          
+
+
+          </Modal>
+
 
       {/* <div>{replying!== 0 ?  messages?.filter((msg) => msg.message_id === replying)[0]?.content : ''}</div> */}
       <div className={replying ? styles.messages_haveReplyBubble : styles.messages}>

@@ -38,4 +38,12 @@ export type GroupInvitation = {
     invitee:string;
     created_time:number;
     status :number;
-}
+};
+
+export type GroupNotice = {
+    groupNotice_id:number;
+    senderName:string;
+    senderAvatar:string;
+    content:string;
+    created_time:number;
+};
