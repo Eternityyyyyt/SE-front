@@ -129,8 +129,12 @@ const Chatbox: React.FC<ChatboxProps> = ({
   const [visibleChangeChatName, setVisibleChangeChatName] = useState(false); 
   const [visibleCreateGroupNotice, setVisibleCreateGroupNotice] = useState(false);  // 创建群公告Modal
   const [visibleGroupNotice, setVisibleGroupNotice] = useState(false);      // 群公告Modal
+  const [visibleDoubleCheck, setVisibleDoubleCheck] = useState(false);           // 二次确认Modal
+  const [visibleAddFriendToGroup, setVisibleAddFriendToGroup] = useState(false);  // 添加好友到群聊Modal
   const [groupNotice, setGroupNotice] = useState<GroupNotice[]>([]);                       // 群公告内容
   const [groupNoticeTmp, setGroupNoticeTmp] = useState('');                       // 群公告内容临时变量，用于编辑群公告
+  const [curGroupNotice, setCurGroupNotice] = useState<GroupNotice>();                       // 当前群公告内容
+  const [curGroupNoticeTmp, setCurGroupNoticeTmp] = useState('');                       // 当前群公告内容临时变量，用于编辑群公告
   const [inputChatName,setInputChatName]=useState('')
   const [friendList , setFriendList] = useState<string[]>([])
   const [requestMessage , setRequestMessage] = useState('');
@@ -214,6 +218,15 @@ const Chatbox: React.FC<ChatboxProps> = ({
     }
   };
   // 群公告相关 begin
+  const confirm=()=> {
+    setVisibleDoubleCheck(true);
+  };
+  const confirmOk = () => {
+    if(curGroupNotice) {
+      deleteGroupNotice(curGroupNotice);
+    }
+    setVisibleDoubleCheck(false);
+  }
   const getGroupNotice = async () => {
     const {data} = await axios.get(getUrl('/api/chat/groupNotice'), {
       headers: {
@@ -1092,16 +1105,25 @@ const Chatbox: React.FC<ChatboxProps> = ({
             dataSource={groupNotice}
             renderItem={(item, index) => (
             <List.Item key={index} actions={[
-              <Button key="delete" onClick={()=>deleteGroupNotice(item)} disabled = {!(currConversation?.adminList?.includes(userName) || currConversation?.owner == userName)}>删除</Button>,
+              <Button key="delete" onClick={()=>{setCurGroupNotice(item);confirm();}} disabled = {!(currConversation?.adminList?.includes(userName) || currConversation?.owner == userName)}>删除</Button>,
             ]}
             >{<Avatar src={`..${item.senderAvatar}`} />} {item.senderName}: {item.content}
             </List.Item>
             )}
             />
-          
+        </Modal>
 
-
-          </Modal>
+        <Modal
+          title="DoubleCheck"
+          visible={visibleDoubleCheck}
+          onCancel={()=>{setVisibleDoubleCheck(false);}}
+          footer={[
+            <Button key="cancel" onClick={()=>{setVisibleDoubleCheck(false);}}>取消</Button>,
+            <Button key="ok" type='primary' onClick={confirmOk}>确定</Button>
+          ]}
+          >
+            <h2>确定删除？</h2>
+        </Modal>
 
 
       {/* <div>{replying!== 0 ?  messages?.filter((msg) => msg.message_id === replying)[0]?.content : ''}</div> */}
