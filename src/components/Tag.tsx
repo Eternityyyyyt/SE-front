@@ -10,6 +10,7 @@ import { setFriendName,setFriendNickname, setFriendAvatar } from '@/redux/friend
 import { getUrl } from '../api/utils';
 import {Button, List, Avatar, Modal, Input} from 'antd';
 import axios from 'axios';
+import { unique } from 'next/dist/build/utils';
 
 interface FriendDataList {
     userName: string;
@@ -27,6 +28,8 @@ const Tag = () => {
     const userName = useSelector((state:RootState) => state.auth.name);
     const token = useSelector((state:RootState) => state.auth.token);
     const [friendDataList, setFriendDataList] = useState<FriendDataList[]>([]);
+    const [filterFriendDataList, setFilterFriendDataList] = useState<FriendDataList[]>([]);
+    const [uniqueFilterFriend, setUniqueFilterFriend] = useState<FriendDataList[]>([]);
     const router = useRouter();
     const dispatch = useDispatch();
 
@@ -39,6 +42,8 @@ const Tag = () => {
     const [selectedRemoveFriendList, setSelectedRemoveFriendList] = useState<string[]>([]);
     const [tagName, setTagName] = useState('');
     const [newTagName, setNewTagName] = useState('');
+    const [filterTag, setFilterTag] = useState<string[]>([]);           // 筛选标签
+    const [ifFilter, setIfFilter] = useState(false);                    // 是否筛选
     // Modal 是否可见
     const [visibleTag, setVisibleTag] = useState(false);                // 标签相关操作
     const [visibleNewTag, setVisibleNewTag] = useState(false);          // 新建标签
@@ -48,7 +53,8 @@ const Tag = () => {
     const [visibleUpdateTagName, setVisibleUpdateTagName] = useState(false);    // 更新标签名
     const [visibleAddFriendToTag, setVisibleAddFriendToTag] = useState(false);  // 添加好友到该Tag
     const [visibleRemoveFriendFromTag, setVisibleRemoveFriendFromTag] = useState(false); // 从该Tag中移除好友
-    
+    const [visibleSelectedTag, setVisibleSelectedTag] = useState(false);        // 选择标签
+    const [visibleDoubleCheck, setVisibleDoubleCheck] = useState(false);        // 二次确认
     const fetchData = async() => {
         try {
             const response = await fetch(getUrl(`/api/friendList/${userName}`), {
@@ -78,34 +84,6 @@ const Tag = () => {
         }
     };
     useEffect(() => {
-        // const fetchData = async() => {
-        //     try {
-        //         const response = await fetch(getUrl(`/api/friendList/${userName}`), {
-        //             method: 'GET',
-        //             headers: {
-        //                 'Authorization': `${token}`
-        //             },
-        //         });
-        //         const data = await response.json();
-        //         if(Number(data.code) === 0) {
-        //             setFriendDataList(data.friendDataList);
-        //         } else {
-        //             switch(Number(data.code)) {
-        //                 case 2:
-        //                     alert("Invalid or expired JWT");
-        //                     break;
-        //                 case 3:
-        //                     alert("Can not view other's friend list");
-        //                     break;
-        //                 default:
-        //                     alert("Something Wrong!");
-        //                     break;
-        //             }
-        //         } 
-        //     } catch(error) {
-        //         console.error('Error')
-        //     }
-        // };
         fetchData();
     }, [userName]);
 
@@ -337,6 +315,52 @@ const Tag = () => {
         dispatch(setFriendAvatar(avatar));
         router.push(`/friendData/`);
     };
+
+    // 筛选好友相关 begin
+    const filterByTag = async() => {
+        const {data} = await axios.get(getUrl("/api/friendTag"), {
+            headers: {
+                Authorization: `${token}`
+            },
+            params: {
+                userName: userName,
+            }
+        });
+        setFriendTagList(data.data);
+        setVisibleSelectedTag(true);
+    };
+    const filterByTagOk = () => {
+        
+        const unique = Array.from(new Set(filterFriendDataList));
+        setUniqueFilterFriend(unique);
+        
+
+        setIfFilter(true);
+        setVisibleDoubleCheck(false);
+        setVisibleSelectedTag(false);
+        
+    };
+    const getFilterList = () => {
+        setVisibleDoubleCheck(true);
+        setFilterFriendDataList([]);
+        filterTag.forEach((tag:string) => {
+            friendDataList.forEach((friend:FriendDataList) => {
+                if(friend.tags.includes(tag)) {
+                    setFilterFriendDataList((prev) => [...prev, friend]);
+                    
+                }
+            })
+        });
+        
+    }
+    // 取消筛选
+    const filterByTagCancel = () => {
+        setIfFilter(false);
+        setFilterTag([]);
+        setFilterFriendDataList([]);
+        setUniqueFilterFriend([]);
+        setVisibleSelectedTag(false);
+    };
     
     
     
@@ -356,8 +380,30 @@ const Tag = () => {
         <div>
             <Button onClick={GoBack}>返回</Button>
             <Button onClick={frindTag}>标签</Button>
-            {friendDataList.length === 0 ? (
-                <p>No Friend</p>
+            <Button onClick={filterByTag}>筛选好友</Button>
+            {friendDataList.length === 0 || ifFilter === true? (
+                friendDataList.length === 0 ? (
+                    <p>No Friend</p>
+                ):
+                (
+                    <ul>
+                        {uniqueFilterFriend.map((request, index) => (
+                        <li key={index}>
+                            <div>
+                                {<img src={`..${request.avatar}`} alt="Avatar" className={styles.avatar} />}
+                            </div>
+
+                            <p>UserName: {request.userName}</p>
+                            <p>Nickname: {request.nickname}</p>
+                            <p>Tags: {request.tags?.join(', ')}</p>
+                            <Button  type='dashed' onClick={() => GoToChat(request.userName)}>聊天</Button>
+                            <Button type='dashed' onClick={() => GetFriendData(request.userName , request.nickname, request.avatar)}>查看详细信息</Button>
+                        </li>
+                        
+                    ))}
+                        
+                    </ul>
+                )
             ): (
                 <ul>
                     {friendDataList.map((request) => (
@@ -519,6 +565,48 @@ const Tag = () => {
                     </List.Item>
                 )}
                 />
+            </Modal>
+
+            <Modal
+                title="已有好友标签"
+                visible={visibleSelectedTag}
+                onCancel={()=>{setVisibleSelectedTag(false);}}
+                footer = {[
+                    <Button key='cancel' onClick={()=>setVisibleSelectedTag(false)}>取消</Button>,
+                    <Button key='cancelfilter' onClick={filterByTagCancel} disabled={!ifFilter}>取消筛选</Button>,
+                    <Button key='filter' onClick={getFilterList} type='primary'>筛选</Button>,
+                ]}
+            >
+                <p>已选标签：{filterTag.join(', ')}</p>
+                <List
+                bordered
+                dataSource={friendTagList}
+                renderItem={(item, index)=>(
+                    <List.Item key={item.tag_id} actions={[
+                        <Button key='edit' onClick={()=>{
+                            if(!filterTag.includes(item.tagName)) {
+                                setFilterTag([...filterTag, item.tagName]);
+                            } else if (filterTag.includes(item.tagName)) {
+                                setFilterTag(filterTag.filter(tag=>tag!==item.tagName));
+                            }
+                        }}>选择</Button>
+                    ]}>
+                       <b>{item.tagName}</b>
+                    </List.Item>
+                )}
+                />
+            </Modal>
+
+            <Modal
+                title="确认筛选"
+                visible={visibleDoubleCheck}
+                onCancel={()=>{setVisibleDoubleCheck(false);}}
+                footer = {[
+                    <Button key='cancel' onClick={()=>setVisibleDoubleCheck(false)}>取消</Button>,
+                    <Button key='ok' onClick={filterByTagOk} type='primary'>确认</Button>
+                ]}
+
+            >
             </Modal>
 
             <Modal
