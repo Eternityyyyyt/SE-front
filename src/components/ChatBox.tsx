@@ -46,10 +46,13 @@ const Chatbox: React.FC<ChatboxProps> = ({
     const fetchAvatars = async () => {
       const newAvatars:Record<string, string>= {};
       if(currConversation){
-        for (const member of currConversation?.memberList) {
-          if (!(member in avatars)) {newAvatars[member] = await getUserAvatar(member, me);}
-          else{newAvatars[member] = avatars[member]}
+        if(currConversation.memberList) {
+          for (const member of currConversation?.memberList) {
+            if (!(member in avatars)) {newAvatars[member] = await getUserAvatar(member, me);}
+            else{newAvatars[member] = avatars[member]}
+          }
         }
+        
       }
       setAvatars(newAvatars);
     };
@@ -710,7 +713,7 @@ const Chatbox: React.FC<ChatboxProps> = ({
   useEffect(()=>{
     scrollToHistoryEnd();
   },[visibleChatHistory])
-  const memberOptions: SelectProps['options'] = currConversation?.memberList.map(i => {
+  const memberOptions: SelectProps['options'] = currConversation?.memberList?.map(i => {
       return {
         label: i,
         value: i,
