@@ -233,7 +233,7 @@ export async function readMessage( userName:string, chat_id:number,after:number 
     const { data } = await axios.post(getUrl('/api/chat/readMessage'), {
       userName: userName,
       chat_id: chat_id,
-      after:after
+      after:after/1000
     }, {
       headers: {
         'Authorization': `${token}`

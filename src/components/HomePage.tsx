@@ -27,7 +27,7 @@ const HomePage = () => {
     // 获取当前用户有的chat_id
     const [memberName, setMemberName] = useState('');
     //const [chat, setChat] = useState<Conversation>();
-    const activeChatId = useSelector((state:RootState) => state.activeChat);
+    const [activeChatId, setActiveChatId] = useState(0)
     const [lastUpdateTime, setLastUpdateTime] = useState<number>(0);
     const { data: conversations, refresh } = useRequest(async () => {
       const convs = await db.conversations.toArray();
@@ -43,6 +43,9 @@ const HomePage = () => {
         refresh();
         setLastUpdateTime(Date.now());
       });
+      //已读消息
+      //console.log(db.activeConversationId);
+      if(db.activeConversationId){readMessage(userName!,db.activeConversationId,Date.now(),token)}
     }, [userName, refresh]);
 
 
@@ -53,12 +56,12 @@ const HomePage = () => {
     // // 组件卸载时清除定时器
     //   return () => clearInterval(intervalId);
     // }, [update]);
-    const activeChat = activeChatId.chat_id ?
-     conversations?.find((item) => item.chat_id === activeChatId.chat_id): undefined;
+    const activeChat = activeChatId ?
+     conversations?.find((item) => item.chat_id === activeChatId): undefined;
 
      
     useEffect(() => {
-      db.activeConversationId = activeChatId.chat_id;
+      db.activeConversationId = activeChatId;
       if(activeChat){
         db.clearUnreadCount(activeChat).then(refresh);
       }
@@ -181,7 +184,7 @@ const HomePage = () => {
             <ConversationSelection // 会话选择组件
               me={userName}
               conversations={conversations || []}
-              onSelect={(id) => {dispatch(setActiveChat(id));readMessage(userName,id,Date.now(),token)}}
+              onSelect={(id) => {setActiveChatId(id);readMessage(userName,id,Date.now(),token)}}
             />
           </div>
         </div>
