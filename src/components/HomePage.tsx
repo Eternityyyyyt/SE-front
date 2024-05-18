@@ -45,7 +45,7 @@ const HomePage = () => {
       });
       //已读消息
       //console.log(db.activeConversationId);
-      if(db.activeConversationId){readMessage(userName!,db.activeConversationId,Date.now(),token)}
+      if(db.activeConversationId){readMessage(userName!,db.activeConversationId,Date.now()+3000,token)}
     }, [userName, refresh]);
 
 
