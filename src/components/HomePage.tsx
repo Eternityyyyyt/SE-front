@@ -37,9 +37,9 @@ const HomePage = () => {
       return convs.filter((conv) => conv.memberList && conv.memberList.includes(userName!));
     }); // 当前用户的会话列表
     const dispatch = useDispatch();
-    const update = useCallback(() => {
+    const update = useCallback(async () => {
       // 更新函数，从后端拉取消息，合并到本地数据库
-      db.pullMessages(userName!,token).then(() => {
+      await db.pullMessages(userName!,token).then(() => {
         refresh();
         setLastUpdateTime(Date.now());
       });
